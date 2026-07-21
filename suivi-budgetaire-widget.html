@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Budgétaire — Patrimoine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+<style>
+  :root{
+    --bg:#F6F3EC;
+    --surface:#FFFFFF;
+    --surface-alt:#EFEAE0;
+    --ink:#232B33;
+    --ink-soft:#5B6570;
+    --accent:#3C6E64;
+    --accent-dark:#2A4D46;
+    --accent-soft:#E4EDE9;
+    --rust:#A6532B;
+    --line:#DEDACD;
+    --ok:#3F8F5F;
+    --ok-soft:#E4F1E8;
+    --warn:#C98A2C;
+    --warn-soft:#FBF0DF;
+    --danger:#C1443A;
+    --danger-soft:#F9E6E3;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:14px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; margin:0; letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+
+  /* ---- Header ---- */
+  header.app-header{
+    background:var(--accent-dark);
+    color:#fff;
+    padding:18px 24px 0 24px;
+  }
+  .header-top{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{
+    width:34px; height:34px; flex:none;
+  }
+  .brand h1{font-size:19px; color:#fff;}
+  .brand .sub{font-size:11.5px; color:#CFE0DA; margin-top:1px; letter-spacing:.02em; text-transform:uppercase;}
+  .status-pill{
+    font-size:11.5px; padding:5px 10px; border-radius:20px; background:rgba(255,255,255,.12);
+    color:#EAF3F0; display:flex; align-items:center; gap:6px;
+  }
+  .status-dot{width:7px; height:7px; border-radius:50%; background:#9EDCB6;}
+  .status-dot.off{background:#E39B90;}
+
+  nav.tabs{display:flex; gap:4px; margin-top:16px;}
+  nav.tabs button{
+    background:transparent; border:none; color:#CFE0DA; font-family:'Inter';
+    font-size:13.5px; font-weight:600; padding:11px 16px; cursor:pointer;
+    border-radius:8px 8px 0 0; display:flex; align-items:center; gap:8px;
+    transition:background .15s, color .15s;
+  }
+  nav.tabs button .role{
+    font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;
+    background:rgba(255,255,255,.14); padding:2px 6px; border-radius:20px;
+  }
+  nav.tabs button:hover{background:rgba(255,255,255,.08); color:#fff;}
+  nav.tabs button.active{background:var(--bg); color:var(--accent-dark);}
+  nav.tabs button.active .role{background:var(--accent-soft); color:var(--accent-dark);}
+
+  .arch-divider{width:100%; height:14px; display:block;}
+
+  main{padding:22px 24px 60px 24px; max-width:1240px; margin:0 auto;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadein .18s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:none;}}
+
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px; margin-bottom:18px;
+  }
+  .panel h2{font-size:16px; margin-bottom:2px;}
+  .panel .desc{color:var(--ink-soft); font-size:12.5px; margin-bottom:16px;}
+
+  /* ---- Forms ---- */
+  .form-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px;}
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field.span2{grid-column:span 2;}
+  .field label{font-size:12px; font-weight:600; color:var(--ink-soft);}
+  .field .req{color:var(--rust);}
+  input, select, textarea{
+    font-family:'Inter'; font-size:13.5px; color:var(--ink);
+    background:var(--bg); border:1px solid var(--line); border-radius:7px;
+    padding:9px 10px; outline:none; transition:border-color .12s, background .12s;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--accent); background:#fff;}
+  textarea{resize:vertical; min-height:38px;}
+  .type-toggle{display:flex; gap:8px;}
+  .type-toggle button{
+    flex:1; padding:9px; border-radius:7px; border:1px solid var(--line); background:var(--bg);
+    font-weight:600; font-size:12.5px; cursor:pointer; color:var(--ink-soft);
+  }
+  .type-toggle button.on{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-dark);}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:7px; border:none; cursor:pointer;
+    font-family:'Inter'; font-weight:600; font-size:13px; padding:10px 16px; border-radius:8px;
+    transition:filter .12s, transform .05s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--accent); color:#fff;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-ghost{background:var(--surface-alt); color:var(--ink);}
+  .btn-ghost:hover{filter:brightness(0.97);}
+  .btn-sm{padding:6px 11px; font-size:12px; border-radius:6px;}
+  .form-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:16px;}
+
+  .toast-wrap{position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:999;}
+  .toast{
+    background:var(--ink); color:#fff; padding:11px 16px; border-radius:8px; font-size:13px;
+    box-shadow:0 6px 18px rgba(0,0,0,.18); display:flex; align-items:center; gap:8px;
+    animation:toastin .18s ease;
+  }
+  .toast.err{background:var(--danger);}
+  @keyframes toastin{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+  /* recent entries */
+  table{width:100%; border-collapse:collapse; font-size:12.8px;}
+  th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--ink-soft); border-bottom:1px solid var(--line); padding:8px 10px; cursor:pointer; user-select:none;
+    white-space:nowrap;
+  }
+  th:hover{color:var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid #EFEBE1; vertical-align:middle;}
+  tr:hover td{background:#FBFAF6;}
+  .badge{
+    display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;
+  }
+  .badge-livree{background:var(--ok-soft); color:var(--ok);}
+  .badge-attente{background:var(--warn-soft); color:var(--warn);}
+  .badge-annulee{background:var(--danger-soft); color:var(--danger);}
+  .badge-partielle{background:#E7ECF3; color:#3E5C86;}
+  .badge-retour{background:#F1E7F3; color:#7A3E86;}
+  .badge-default{background:var(--surface-alt); color:var(--ink-soft);}
+
+  /* ---- Consultation ---- */
+  .site-tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .site-tabs button{
+    padding:8px 14px; border-radius:20px; border:1px solid var(--line); background:var(--surface);
+    font-weight:600; font-size:12.8px; cursor:pointer; color:var(--ink-soft);
+  }
+  .site-tabs button.on{background:var(--accent-dark); border-color:var(--accent-dark); color:#fff;}
+
+  .budget-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px; margin-bottom:6px;}
+  .budget-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;
+    position:relative; overflow:hidden;
+  }
+  .budget-card::before{
+    content:""; position:absolute; top:0; left:0; width:100%; height:4px; background:var(--accent);
+  }
+  .budget-card.over::before{background:var(--danger);}
+  .budget-card .bc-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
+  .budget-card .bc-title{font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); font-weight:700;}
+  .budget-card .bc-pct{font-family:'IBM Plex Mono'; font-size:13px; font-weight:600;}
+  .budget-card .bc-row{display:flex; justify-content:space-between; font-size:13px; margin-top:5px;}
+  .budget-card .bc-row .v{font-family:'IBM Plex Mono'; font-weight:600;}
+  .bc-solde-pos{color:var(--ok);}
+  .bc-solde-neg{color:var(--danger);}
+  .bar-track{height:8px; background:var(--surface-alt); border-radius:6px; overflow:hidden; margin:10px 0 4px 0;}
+  .bar-fill{height:100%; border-radius:6px; background:var(--accent); transition:width .3s;}
+  .bar-fill.warn{background:var(--warn);}
+  .bar-fill.danger{background:var(--danger);}
+
+  .filters-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
+  .filters-row input, .filters-row select{min-width:150px;}
+  .filters-row .search{flex:1; min-width:200px;}
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:8px;}
+  .empty-state{padding:36px 20px; text-align:center; color:var(--ink-soft);}
+  .empty-state .em-title{font-family:'Fraunces'; font-size:16px; color:var(--ink); margin-bottom:4px;}
+
+  /* ---- Stats ---- */
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:14px; margin-bottom:18px;}
+  .kpi-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:15px 18px;}
+  .kpi-card .kpi-label{font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-soft); font-weight:700;}
+  .kpi-card .kpi-value{font-family:'Fraunces'; font-size:26px; margin-top:4px;}
+  .charts-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:16px;}
+  .charts-grid .full{grid-column:1/-1;}
+  @media (max-width:820px){.charts-grid{grid-template-columns:1fr;}}
+  .chart-box{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
+  .chart-box h3{font-size:13.5px; margin-bottom:10px;}
+  .chart-box canvas{max-height:260px;}
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(35,43,51,.45); display:none; align-items:center; justify-content:center; z-index:1000;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{background:#fff; border-radius:12px; padding:22px 24px; width:520px; max-width:92vw; max-height:86vh; overflow:auto;}
+  .modal h2{margin-bottom:4px;}
+  .budget-config-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;}
+  .budget-config-grid .field label{font-size:11.5px;}
+
+  .top-actions{display:flex; justify-content:flex-end; gap:10px; margin-bottom:14px;}
+  .footnote{color:var(--ink-soft); font-size:11.5px; margin-top:6px;}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-top">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <path d="M4 34V18L12 8L20 18V34" stroke="#EAF3F0" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M20 34V14L27.5 5L35 14V34" stroke="#9EDCB6" stroke-width="2.2" stroke-linejoin="round"/>
+        <line x1="2" y1="34" x2="37" y2="34" stroke="#EAF3F0" stroke-width="2.2"/>
+      </svg>
+      <div>
+        <h1>Suivi Budgétaire — Patrimoine</h1>
+        <div class="sub">Cathédrale · Citadelle · Saint‑Leu</div>
+      </div>
+    </div>
+    <div class="status-pill">
+      <span class="status-dot off" id="statusDot"></span>
+      <span id="statusText">Connexion à Grist…</span>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-view="saisie">✎ Saisie <span class="role">Agent</span></button>
+    <button class="tab-btn" data-view="consult">☰ Consultation <span class="role">Lecture</span></button>
+    <button class="tab-btn" data-view="stats">◆ Pilotage &amp; Stats <span class="role">Direction</span></button>
+  </nav>
+  <svg class="arch-divider" viewBox="0 0 1200 14" preserveAspectRatio="none">
+    <path d="M0,14 Q30,0 60,14 Q90,0 120,14 Q150,0 180,14 Q210,0 240,14 Q270,0 300,14 Q330,0 360,14 Q390,0 420,14 Q450,0 480,14 Q510,0 540,14 Q570,0 600,14 Q630,0 660,14 Q690,0 720,14 Q750,0 780,14 Q810,0 840,14 Q870,0 900,14 Q930,0 960,14 Q990,0 1020,14 Q1050,0 1080,14 Q1110,0 1140,14 Q1170,0 1200,14 L1200,14 L0,14 Z" fill="#F6F3EC"/>
+  </svg>
+</header>
+
+<main>
+
+  <!-- ============ VUE 1 : SAISIE AGENT ============ -->
+  <section class="view active" id="view-saisie">
+    <div class="panel">
+      <h2>Nouvelle commande</h2>
+      <div class="desc">Saisissez une commande de fonctionnement ou d'investissement. Les champs marqués <span class="req">*</span> sont recommandés.</div>
+
+      <div class="field" style="margin-bottom:14px; max-width:320px;">
+        <label>Type de budget <span class="req">*</span></label>
+        <div class="type-toggle">
+          <button type="button" data-type="Fonctionnement" class="on">Fonctionnement</button>
+          <button type="button" data-type="Investissement">Investissement</button>
+        </div>
+      </div>
+
+      <form id="formSaisie">
+        <div class="form-grid">
+          <div class="field">
+            <label>Site <span class="req">*</span></label>
+            <select id="f_site" required>
+              <option value="Cathédrale">Cathédrale</option>
+              <option value="Citadelle">Citadelle</option>
+              <option value="Saint-Leu">Saint-Leu</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="f_date" required>
+          </div>
+          <div class="field">
+            <label>N° BC / OS</label>
+            <input type="text" id="f_numbc" placeholder="4500...">
+          </div>
+          <div class="field">
+            <label>Centre de coût</label>
+            <input type="text" id="f_centrecout" placeholder="COSL, COCITAD…">
+          </div>
+          <div class="field">
+            <label>Fournisseur <span class="req">*</span></label>
+            <input type="text" id="f_fournisseur" list="dl_fournisseurs" required>
+            <datalist id="dl_fournisseurs"></datalist>
+          </div>
+          <div class="field">
+            <label>Centrale d'achat</label>
+            <input type="text" id="f_centrale" placeholder="Aucune, UGAP…" list="dl_centrales">
+            <datalist id="dl_centrales"></datalist>
+          </div>
+          <div class="field">
+            <label>Catégorie <span class="req">*</span></label>
+            <input type="text" id="f_categorie" list="dl_categories" required>
+            <datalist id="dl_categories"></datalist>
+          </div>
+          <div class="field">
+            <label>Marché</label>
+            <select id="f_marches">
+              <option value="">—</option>
+              <option value="oui">oui</option>
+              <option value="non">non</option>
+            </select>
+          </div>
+          <div class="field span2">
+            <label>Objet de la commande <span class="req">*</span></label>
+            <input type="text" id="f_objet" required>
+          </div>
+          <div class="field span2">
+            <label>Motivations d'achat</label>
+            <textarea id="f_motivations"></textarea>
+          </div>
+          <div class="field">
+            <label>Montant TTC (€) <span class="req">*</span></label>
+            <input type="number" step="0.01" min="0" id="f_montant" required>
+          </div>
+          <div class="field">
+            <label>Validation (agent)</label>
+            <input type="text" id="f_validation" placeholder="Votre prénom">
+          </div>
+          <div class="field">
+            <label>État commande</label>
+            <select id="f_etat">
+              <option>Attente</option>
+              <option>Livrée</option>
+              <option>Partielle</option>
+              <option>Annulée</option>
+              <option>Retour</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Postes manquants</label>
+            <input type="text" id="f_postes">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="btnReset">Réinitialiser</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmit">＋ Ajouter la commande</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Mes dernières saisies</h2>
+      <div class="desc">Les 8 commandes les plus récentes du document — cliquez sur l'état pour le corriger rapidement.</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Site</th><th>Type</th><th>Fournisseur</th><th>Objet</th>
+            <th>Montant</th><th>État</th>
+          </tr></thead>
+          <tbody id="recentBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VUE 2 : CONSULTATION ============ -->
+  <section class="view" id="view-consult">
+    <div class="site-tabs" id="siteTabs">
+      <button class="on" data-site="__all__">Vue globale</button>
+      <button data-site="Cathédrale">Cathédrale</button>
+      <button data-site="Citadelle">Citadelle</button>
+      <button data-site="Saint-Leu">Saint-Leu</button>
+    </div>
+
+    <div class="budget-grid" id="budgetCards"></div>
+
+    <div class="panel" style="margin-top:18px;">
+      <h2>Commandes</h2>
+      <div class="desc">Filtrez et recherchez l'ensemble des commandes saisies.</div>
+      <div class="filters-row">
+        <input type="text" class="search" id="q_search" placeholder="Rechercher fournisseur, objet, n° BC…">
+        <select id="q_type">
+          <option value="">Tous types</option>
+          <option>Fonctionnement</option>
+          <option>Investissement</option>
+        </select>
+        <select id="q_etat">
+          <option value="">Tous états</option>
+          <option>Attente</option><option>Livrée</option><option>Partielle</option><option>Annulée</option><option>Retour</option>
+        </select>
+        <select id="q_categorie"><option value="">Toutes catégories</option></select>
+        <button class="btn btn-ghost btn-sm" id="btnClearFilters">Effacer</button>
+      </div>
+      <div class="table-wrap">
+        <table id="consultTable">
+          <thead><tr>
+            <th data-k="Date">Date</th><th data-k="Site">Site</th><th data-k="Type">Type</th>
+            <th data-k="Fournisseur">Fournisseur</th><th data-k="Categorie">Catégorie</th>
+            <th data-k="Objet">Objet</th><th data-k="MontantTTC">Montant</th><th data-k="EtatCommande">État</th>
+          </tr></thead>
+          <tbody id="consultBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="consultEmpty" style="display:none;">
+        <div class="em-title">Aucune commande</div>
+        Ajustez vos filtres ou saisissez une nouvelle commande depuis l'onglet Saisie.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VUE 3 : PILOTAGE / STATS ============ -->
+  <section class="view" id="view-stats">
+    <div class="top-actions">
+      <button class="btn btn-ghost btn-sm" id="btnExport">⬇ Exporter CSV</button>
+      <button class="btn btn-primary btn-sm" id="btnConfigBudgets">⚙ Configurer les budgets</button>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="charts-grid">
+      <div class="chart-box"><h3>Engagé par site (Fonct. / Invest.)</h3><canvas id="chartSite"></canvas></div>
+      <div class="chart-box"><h3>Répartition par catégorie</h3><canvas id="chartCategorie"></canvas></div>
+      <div class="chart-box full"><h3>Évolution mensuelle des engagements</h3><canvas id="chartMonthly"></canvas></div>
+      <div class="chart-box"><h3>Top 10 fournisseurs</h3><canvas id="chartFournisseurs"></canvas></div>
+      <div class="chart-box"><h3>État des commandes</h3><canvas id="chartEtat"></canvas></div>
+    </div>
+    <div class="footnote">Les commandes à l'état « Annulée » sont exclues des montants engagés mais comptabilisées dans le nombre total de commandes.</div>
+  </section>
+
+</main>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="modal-backdrop" id="budgetModal">
+  <div class="modal">
+    <h2>Configurer les budgets</h2>
+    <div class="desc" style="margin-top:2px; color:var(--ink-soft); font-size:12.5px;">Montants disponibles initiaux, par site et par nature de dépense.</div>
+    <div class="budget-config-grid" id="budgetConfigGrid"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="btnCancelBudgets">Annuler</button>
+      <button class="btn btn-primary" id="btnSaveBudgets">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const SITES = ["Cathédrale","Citadelle","Saint-Leu"];
+const TYPES = ["Fonctionnement","Investissement"];
+
+const COLUMN_DEFS = [
+  {name:"Date", title:"Date", type:"Date"},
+  {name:"Type", title:"Type (Fonctionnement / Investissement)", type:"Text"},
+  {name:"Site", title:"Site", type:"Text"},
+  {name:"DC", title:"D/C", type:"Text", optional:true},
+  {name:"NumBC", title:"N° BC / OS", type:"Text", optional:true},
+  {name:"CentreCout", title:"Centre de coût", type:"Text", optional:true},
+  {name:"Fournisseur", title:"Fournisseur", type:"Text"},
+  {name:"CentraleAchat", title:"Centrale d'achat", type:"Text", optional:true},
+  {name:"Categorie", title:"Catégorie", type:"Text"},
+  {name:"Objet", title:"Objet de la commande", type:"Text"},
+  {name:"Marches", title:"Marchés", type:"Text", optional:true},
+  {name:"Motivations", title:"Motivations d'achats", type:"Text", optional:true},
+  {name:"MontantTTC", title:"Montant TTC", type:"Numeric"},
+  {name:"Validation", title:"Validation (agent)", type:"Text", optional:true},
+  {name:"DateEnvoi", title:"Date d'envoi", type:"Date", optional:true},
+  {name:"EtatCommande", title:"Etat commande", type:"Text"},
+  {name:"PostesManquants", title:"Postes manquants", type:"Text", optional:true},
+];
+
+const DEFAULT_BUDGETS = {
+  "Cathédrale": {Fonctionnement:0, Investissement:0},
+  "Citadelle":  {Fonctionnement:0, Investissement:0},
+  "Saint-Leu":  {Fonctionnement:0, Investissement:0},
+};
+
+/* ================= STATE ================= */
+let records = [];        // logical-named records from grist
+let mappings = null;
+let budgets = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
+let selectedSite = "__all__";
+let selectedType = "Fonctionnement"; // for saisie form
+let sortKey = "Date", sortDir = -1;
+let charts = {};
+
+/* ================= GRIST WIRING ================= */
+function isGristAvailable(){ return typeof grist !== "undefined"; }
+
+if (isGristAvailable()) {
+  grist.ready({ columns: COLUMN_DEFS, requiredAccess: "full" });
+
+  grist.onRecords((recs, maps) => {
+    mappings = maps;
+    records = grist.mapColumnNames(recs, maps).map(normalizeRecord);
+    setStatus(true);
+    renderAll();
+  });
+
+  if (grist.onOptions) {
+    grist.onOptions((options) => {
+      if (options && options.budgets) {
+        budgets = mergeBudgets(options.budgets);
+        renderAll();
+      }
+    });
+  }
+} else {
+  setStatus(false);
+  // Fallback demo data so the widget is inspectable outside Grist.
+  records = [];
+}
+
+function setStatus(ok){
+  document.getElementById("statusDot").classList.toggle("off", !ok);
+  document.getElementById("statusText").textContent = ok ? "Connecté au document Grist" : "En attente de connexion Grist";
+}
+
+function normalizeRecord(r){
+  return {
+    id: r.id,
+    Date: r.Date ? toDateStr(r.Date) : "",
+    Type: r.Type || "Fonctionnement",
+    Site: r.Site || "",
+    DC: r.DC || "",
+    NumBC: r.NumBC || "",
+    CentreCout: r.CentreCout || "",
+    Fournisseur: r.Fournisseur || "",
+    CentraleAchat: r.CentraleAchat || "",
+    Categorie: r.Categorie || "",
+    Objet: r.Objet || "",
+    Marches: r.Marches || "",
+    Motivations: r.Motivations || "",
+    MontantTTC: Number(r.MontantTTC) || 0,
+    Validation: r.Validation || "",
+    DateEnvoi: r.DateEnvoi ? toDateStr(r.DateEnvoi) : "",
+    EtatCommande: r.EtatCommande || "Attente",
+    PostesManquants: r.PostesManquants || "",
+  };
+}
+
+function toDateStr(v){
+  // Grist Date columns arrive as seconds-since-epoch (number) or already a string
+  if (typeof v === "number") {
+    const d = new Date(v * 1000);
+    return d.toISOString().slice(0,10);
+  }
+  return String(v).slice(0,10);
+}
+
+function dateToGrist(str){
+  // Convert yyyy-mm-dd -> seconds since epoch (UTC midday to dodge TZ rollover)
+  if (!str) return null;
+  const d = new Date(str + "T12:00:00Z");
+  return Math.floor(d.getTime()/1000);
+}
+
+function mergeBudgets(saved){
+  const out = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
+  SITES.forEach(s => { TYPES.forEach(t => {
+    if (saved[s] && saved[s][t] != null) out[s][t] = Number(saved[s][t]) || 0;
+  });});
+  return out;
+}
+
+async function toGristFields(logicalFields){
+  if (mappings && grist.mapColumnNamesBack) {
+    try { return grist.mapColumnNamesBack(logicalFields, mappings); } catch(e) { /* fall through */ }
+  }
+  return logicalFields; // fallback: assumes Grist column IDs match the logical names above
+}
+
+async function addRecord(fields){
+  const gristFields = await toGristFields(fields);
+  if (isGristAvailable() && grist.selectedTable) {
+    await grist.selectedTable.create({ fields: gristFields });
+  } else {
+    // offline fallback for local testing
+    records.unshift(normalizeRecord({ id: Date.now(), ...fields }));
+    renderAll();
+  }
+}
+
+async function updateRecord(id, fields){
+  const gristFields = await toGristFields(fields);
+  if (isGristAvailable() && grist.selectedTable) {
+    await grist.selectedTable.update({ id, fields: gristFields });
+  } else {
+    const rec = records.find(r => r.id === id);
+    if (rec) Object.assign(rec, fields);
+    renderAll();
+  }
+}
+
+function saveBudgets(newBudgets){
+  budgets = newBudgets;
+  if (isGristAvailable() && grist.setOptions) {
+    grist.setOptions({ budgets: newBudgets });
+  }
+  renderAll();
+}
+
+/* ================= TABS ================= */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("view-"+btn.dataset.view).classList.add("active");
+    if (btn.dataset.view === "stats") renderCharts();
+  });
+});
+
+/* ================= TOASTS ================= */
+function toast(msg, isErr){
+  const wrap = document.getElementById("toastWrap");
+  const el = document.createElement("div");
+  el.className = "toast" + (isErr ? " err" : "");
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
+/* ================= SAISIE FORM ================= */
+document.querySelectorAll(".type-toggle button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".type-toggle button").forEach(b=>b.classList.remove("on"));
+    btn.classList.add("on");
+    selectedType = btn.dataset.type;
+  });
+});
+
+document.getElementById("f_date").valueAsDate = new Date();
+
+document.getElementById("btnReset").addEventListener("click", ()=> document.getElementById("formSaisie").reset());
+
+document.getElementById("formSaisie").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById("btnSubmit");
+  btn.disabled = true;
+  try{
+    const fields = {
+      Date: dateToGrist(document.getElementById("f_date").value),
+      Type: selectedType,
+      Site: document.getElementById("f_site").value,
+      NumBC: document.getElementById("f_numbc").value,
+      CentreCout: document.getElementById("f_centrecout").value,
+      Fournisseur: document.getElementById("f_fournisseur").value,
+      CentraleAchat: document.getElementById("f_centrale").value,
+      Categorie: document.getElementById("f_categorie").value,
+      Objet: document.getElementById("f_objet").value,
+      Marches: document.getElementById("f_marches").value,
+      Motivations: document.getElementById("f_motivations").value,
+      MontantTTC: parseFloat(document.getElementById("f_montant").value) || 0,
+      Validation: document.getElementById("f_validation").value,
+      EtatCommande: document.getElementById("f_etat").value,
+      PostesManquants: document.getElementById("f_postes").value,
+    };
+    await addRecord(fields);
+    toast("Commande ajoutée ✓");
+    const keepSite = document.getElementById("f_site").value;
+    const keepValidation = document.getElementById("f_validation").value;
+    document.getElementById("formSaisie").reset();
+    document.getElementById("f_date").valueAsDate = new Date();
+    document.getElementById("f_site").value = keepSite;
+    document.getElementById("f_validation").value = keepValidation;
+  }catch(err){
+    console.error(err);
+    toast("Erreur lors de l'ajout : " + (err.message||err), true);
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+function renderRecentEntries(){
+  const body = document.getElementById("recentBody");
+  const recent = [...records].sort((a,b)=> (b.id||0)-(a.id||0)).slice(0,8);
+  body.innerHTML = recent.map(r=>`
+    <tr>
+      <td>${r.Date||"—"}</td>
+      <td>${r.Site||"—"}</td>
+      <td>${r.Type||"—"}</td>
+      <td>${escapeHtml(r.Fournisseur)}</td>
+      <td>${escapeHtml(r.Objet)}</td>
+      <td class="mono">${fmtEUR(r.MontantTTC)}</td>
+      <td>${etatSelect(r)}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="7" style="color:var(--ink-soft); text-align:center; padding:20px;">Aucune commande pour l'instant</td></tr>`;
+
+  body.querySelectorAll("select.etat-inline").forEach(sel=>{
+    sel.addEventListener("change", async (e)=>{
+      const id = Number(e.target.dataset.id);
+      await updateRecord(id, {EtatCommande: e.target.value});
+      toast("État mis à jour ✓");
+    });
+  });
+}
+
+function etatSelect(r){
+  const states = ["Attente","Livrée","Partielle","Annulée","Retour"];
+  return `<select class="etat-inline" data-id="${r.id}" style="padding:4px 8px; font-size:12px;">
+    ${states.map(s=>`<option ${s===r.EtatCommande?"selected":""}>${s}</option>`).join("")}
+  </select>`;
+}
+
+/* ================= CONSULTATION ================= */
+document.getElementById("siteTabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button"); if(!btn) return;
+  document.querySelectorAll("#siteTabs button").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  selectedSite = btn.dataset.site;
+  renderBudgetCards();
+  renderConsultTable();
+});
+
+["q_search","q_type","q_etat","q_categorie"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", renderConsultTable);
+  document.getElementById(id).addEventListener("change", renderConsultTable);
+});
+document.getElementById("btnClearFilters").addEventListener("click", ()=>{
+  document.getElementById("q_search").value="";
+  document.getElementById("q_type").value="";
+  document.getElementById("q_etat").value="";
+  document.getElementById("q_categorie").value="";
+  renderConsultTable();
+});
+document.querySelectorAll("#consultTable th[data-k]").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.dataset.k;
+    sortDir = (sortKey===k) ? -sortDir : -1;
+    sortKey = k;
+    renderConsultTable();
+  });
+});
+
+function engagedRecords(site){
+  return records.filter(r => r.EtatCommande !== "Annulée" && (site==="__all__" || r.Site===site));
+}
+
+function computeBudgetFor(site, type){
+  const init = (budgets[site] && budgets[site][type]) || 0;
+  const engaged = records
+    .filter(r=> r.Site===site && r.Type===type && r.EtatCommande!=="Annulée")
+    .reduce((s,r)=> s+r.MontantTTC, 0);
+  const solde = init - engaged;
+  const pct = init>0 ? Math.min(999, (engaged/init)*100) : (engaged>0 ? 100 : 0);
+  return {init, engaged, solde, pct};
+}
+
+function renderBudgetCards(){
+  const wrap = document.getElementById("budgetCards");
+  const sitesToShow = selectedSite==="__all__" ? SITES : [selectedSite];
+  let cards = "";
+  sitesToShow.forEach(site=>{
+    TYPES.forEach(type=>{
+      const b = computeBudgetFor(site,type);
+      const over = b.solde < 0;
+      const barClass = b.pct>=100 ? "danger" : (b.pct>=80 ? "warn" : "");
+      cards += `
+        <div class="budget-card ${over?"over":""}">
+          <div class="bc-head">
+            <div class="bc-title">${site} · ${type}</div>
+            <div class="bc-pct" style="color:${over?"var(--danger)":"var(--ink-soft)"}">${b.pct.toFixed(0)}%</div>
+          </div>
+          <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${Math.min(100,b.pct)}%"></div></div>
+          <div class="bc-row"><span>Disponible initial</span><span class="v">${fmtEUR(b.init)}</span></div>
+          <div class="bc-row"><span>Engagé</span><span class="v">${fmtEUR(b.engaged)}</span></div>
+          <div class="bc-row"><span>Solde</span><span class="v ${over?"bc-solde-neg":"bc-solde-pos"}">${fmtEUR(b.solde)}</span></div>
+        </div>`;
+    });
+  });
+  // Global aggregate cards when "vue globale"
+  if (selectedSite==="__all__"){
+    let g = {};
+    TYPES.forEach(type=>{
+      let init=0, engaged=0;
+      SITES.forEach(site=>{ const b=computeBudgetFor(site,type); init+=b.init; engaged+=b.engaged; });
+      g[type] = {init, engaged, solde:init-engaged, pct: init>0? (engaged/init)*100 : (engaged>0?100:0)};
+    });
+    let globalCards = "";
+    TYPES.forEach(type=>{
+      const b = g[type]; const over = b.solde<0;
+      const barClass = b.pct>=100 ? "danger" : (b.pct>=80 ? "warn" : "");
+      globalCards += `
+        <div class="budget-card ${over?"over":""}" style="background:var(--accent-soft);">
+          <div class="bc-head">
+            <div class="bc-title">Tous sites · ${type}</div>
+            <div class="bc-pct" style="color:${over?"var(--danger)":"var(--ink-soft)"}">${b.pct.toFixed(0)}%</div>
+          </div>
+          <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${Math.min(100,b.pct)}%"></div></div>
+          <div class="bc-row"><span>Disponible initial</span><span class="v">${fmtEUR(b.init)}</span></div>
+          <div class="bc-row"><span>Engagé</span><span class="v">${fmtEUR(b.engaged)}</span></div>
+          <div class="bc-row"><span>Solde</span><span class="v ${over?"bc-solde-neg":"bc-solde-pos"}">${fmtEUR(b.solde)}</span></div>
+        </div>`;
+    });
+    cards = globalCards + cards;
+  }
+  wrap.innerHTML = cards;
+}
+
+function renderConsultTable(){
+  const q = document.getElementById("q_search").value.trim().toLowerCase();
+  const type = document.getElementById("q_type").value;
+  const etat = document.getElementById("q_etat").value;
+  const cat = document.getElementById("q_categorie").value;
+
+  let rows = records.filter(r=>{
+    if (selectedSite!=="__all__" && r.Site!==selectedSite) return false;
+    if (type && r.Type!==type) return false;
+    if (etat && r.EtatCommande!==etat) return false;
+    if (cat && r.Categorie!==cat) return false;
+    if (q){
+      const hay = (r.Fournisseur+" "+r.Objet+" "+r.NumBC+" "+r.Categorie).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  rows.sort((a,b)=>{
+    let va=a[sortKey], vb=b[sortKey];
+    if (sortKey==="MontantTTC"){ va=Number(va); vb=Number(vb); }
+    if (va<vb) return -1*sortDir;
+    if (va>vb) return 1*sortDir;
+    return 0;
+  });
+
+  document.getElementById("consultBody").innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.Date||"—"}</td>
+      <td>${r.Site||"—"}</td>
+      <td>${r.Type||"—"}</td>
+      <td>${escapeHtml(r.Fournisseur)}</td>
+      <td>${escapeHtml(r.Categorie)}</td>
+      <td>${escapeHtml(r.Objet)}</td>
+      <td class="mono">${fmtEUR(r.MontantTTC)}</td>
+      <td>${badge(r.EtatCommande)}</td>
+    </tr>
+  `).join("");
+
+  document.getElementById("consultEmpty").style.display = rows.length? "none":"block";
+
+  // refresh category filter options
+  const catSel = document.getElementById("q_categorie");
+  const cur = catSel.value;
+  const cats = [...new Set(records.map(r=>r.Categorie).filter(Boolean))].sort();
+  catSel.innerHTML = `<option value="">Toutes catégories</option>` + cats.map(c=>`<option ${c===cur?"selected":""}>${c}</option>`).join("");
+}
+
+function badge(etat){
+  const map = {"Livrée":"badge-livree","Attente":"badge-attente","Annulée":"badge-annulee","Partielle":"badge-partielle","Retour":"badge-retour"};
+  return `<span class="badge ${map[etat]||"badge-default"}">${etat||"—"}</span>`;
+}
+
+/* ================= DATALISTS (autocomplete) ================= */
+function renderDatalists(){
+  fillDatalist("dl_fournisseurs", records.map(r=>r.Fournisseur));
+  fillDatalist("dl_centrales", records.map(r=>r.CentraleAchat));
+  fillDatalist("dl_categories", records.map(r=>r.Categorie));
+}
+function fillDatalist(id, values){
+  const el = document.getElementById(id);
+  const uniq = [...new Set(values.filter(Boolean))].sort();
+  el.innerHTML = uniq.map(v=>`<option value="${escapeHtml(v)}">`).join("");
+}
+
+/* ================= STATS / PILOTAGE ================= */
+document.getElementById("btnConfigBudgets").addEventListener("click", openBudgetModal);
+document.getElementById("btnCancelBudgets").addEventListener("click", ()=> document.getElementById("budgetModal").classList.remove("open"));
+document.getElementById("btnSaveBudgets").addEventListener("click", ()=>{
+  const newBudgets = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
+  SITES.forEach(site=>{ TYPES.forEach(type=>{
+    const input = document.getElementById(`bud_${site}_${type}`);
+    newBudgets[site][type] = parseFloat(input.value) || 0;
+  });});
+  saveBudgets(newBudgets);
+  document.getElementById("budgetModal").classList.remove("open");
+  toast("Budgets mis à jour ✓");
+});
+
+function openBudgetModal(){
+  const grid = document.getElementById("budgetConfigGrid");
+  grid.innerHTML = "";
+  SITES.forEach(site=>{
+    TYPES.forEach(type=>{
+      const div = document.createElement("div");
+      div.className = "field";
+      div.innerHTML = `<label>${site} · ${type}</label><input type="number" step="0.01" id="bud_${site}_${type}" value="${budgets[site][type]}">`;
+      grid.appendChild(div);
+    });
+  });
+  document.getElementById("budgetModal").classList.add("open");
+}
+
+document.getElementById("btnExport").addEventListener("click", exportCSV);
+function exportCSV(){
+  const headers = ["Date","Type","Site","N° BC","Centre de coût","Fournisseur","Centrale d'achat","Catégorie","Objet","Marché","Montant TTC","Validation","État commande"];
+  const lines = [headers.join(";")];
+  records.forEach(r=>{
+    lines.push([r.Date,r.Type,r.Site,r.NumBC,r.CentreCout,r.Fournisseur,r.CentraleAchat,r.Categorie,r.Objet,r.Marches,r.MontantTTC,r.Validation,r.EtatCommande]
+      .map(v=> `"${String(v??"").replace(/"/g,'""')}"`).join(";"));
+  });
+  const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "suivi_budgetaire_export.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderKPIs(){
+  const eng = engagedRecords("__all__");
+  const totalEngaged = eng.reduce((s,r)=>s+r.MontantTTC,0);
+  const totalInit = SITES.reduce((s,site)=> s + TYPES.reduce((s2,t)=> s2+(budgets[site][t]||0),0), 0);
+  const nbCommandes = records.length;
+  const panierMoyen = eng.length ? totalEngaged/eng.length : 0;
+  const livrees = records.filter(r=>r.EtatCommande==="Livrée").length;
+  const tauxLivraison = records.length ? (livrees/records.length)*100 : 0;
+
+  const kpis = [
+    {label:"Engagé total", value: fmtEUR(totalEngaged)},
+    {label:"Solde disponible", value: fmtEUR(totalInit-totalEngaged)},
+    {label:"Nombre de commandes", value: nbCommandes},
+    {label:"Panier moyen", value: fmtEUR(panierMoyen)},
+    {label:"Taux de livraison", value: tauxLivraison.toFixed(0)+"%"},
+  ];
+  document.getElementById("kpiGrid").innerHTML = kpis.map(k=>`
+    <div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div>
+  `).join("");
+}
+
+function renderCharts(){
+  const palette = ["#3C6E64","#A6532B","#C98A2C","#5B8DBE","#7A3E86","#3E5C86","#8AA66B","#B5484E"];
+
+  // Par site (groupé Fonct/Invest)
+  const bySite = SITES.map(site=>({
+    site,
+    Fonctionnement: records.filter(r=>r.Site===site&&r.Type==="Fonctionnement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
+    Investissement: records.filter(r=>r.Site===site&&r.Type==="Investissement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
+  }));
+  mkChart("chartSite","bar",{
+    labels: bySite.map(s=>s.site),
+    datasets:[
+      {label:"Fonctionnement", data:bySite.map(s=>s.Fonctionnement), backgroundColor:"#3C6E64", borderRadius:5},
+      {label:"Investissement", data:bySite.map(s=>s.Investissement), backgroundColor:"#A6532B", borderRadius:5},
+    ]
+  },{ plugins:{legend:{position:"bottom"}}, scales:{y:{beginAtZero:true}} });
+
+  // Catégorie (doughnut)
+  const byCat = groupSum(engagedRecords("__all__"), "Categorie");
+  mkChart("chartCategorie","doughnut",{
+    labels: byCat.map(c=>c.key),
+    datasets:[{data: byCat.map(c=>c.val), backgroundColor: byCat.map((_,i)=>palette[i%palette.length])}]
+  },{ plugins:{legend:{position:"right", labels:{boxWidth:11,font:{size:10.5}}}} });
+
+  // Mensuel (line)
+  const byMonth = groupSumByMonth(engagedRecords("__all__"));
+  mkChart("chartMonthly","line",{
+    labels: byMonth.map(m=>m.key),
+    datasets:[{label:"Montant engagé", data: byMonth.map(m=>m.val), borderColor:"#3C6E64", backgroundColor:"rgba(60,110,100,.12)", fill:true, tension:.3}]
+  },{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} });
+
+  // Top fournisseurs
+  const bySup = groupSum(engagedRecords("__all__"),"Fournisseur").sort((a,b)=>b.val-a.val).slice(0,10);
+  mkChart("chartFournisseurs","bar",{
+    labels: bySup.map(s=>s.key),
+    datasets:[{label:"Montant", data:bySup.map(s=>s.val), backgroundColor:"#3C6E64", borderRadius:4}]
+  },{ indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}} });
+
+  // État commande
+  const byEtat = groupSum(records,"EtatCommande");
+  mkChart("chartEtat","doughnut",{
+    labels: byEtat.map(e=>e.key),
+    datasets:[{data: byEtat.map(e=>e.val), backgroundColor: byEtat.map(e=>({
+      "Livrée":"#3F8F5F","Attente":"#C98A2C","Annulée":"#C1443A","Partielle":"#3E5C86","Retour":"#7A3E86"
+    }[e.key] || "#999"))}]
+  },{ plugins:{legend:{position:"right", labels:{boxWidth:11,font:{size:10.5}}}} });
+}
+
+function mkChart(canvasId, type, data, extraOpts){
+  const ctx = document.getElementById(canvasId);
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(ctx, {
+    type, data,
+    options: Object.assign({responsive:true, maintainAspectRatio:false}, extraOpts||{})
+  });
+}
+
+function groupSum(rows, key){
+  const m = new Map();
+  rows.forEach(r=>{
+    const k = r[key] || "Non renseigné";
+    m.set(k, (m.get(k)||0) + r.MontantTTC);
+  });
+  return [...m.entries()].map(([key,val])=>({key,val})).sort((a,b)=>b.val-a.val);
+}
+function groupSumByMonth(rows){
+  const m = new Map();
+  rows.forEach(r=>{
+    if (!r.Date) return;
+    const k = r.Date.slice(0,7); // yyyy-mm
+    m.set(k,(m.get(k)||0)+r.MontantTTC);
+  });
+  return [...m.entries()].sort((a,b)=> a[0]<b[0]?-1:1).map(([key,val])=>({key,val}));
+}
+
+/* ================= UTIL ================= */
+function fmtEUR(n){
+  return (Number(n)||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+}
+function escapeHtml(s){
+  return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ================= MASTER RENDER ================= */
+function renderAll(){
+  renderRecentEntries();
+  renderDatalists();
+  renderBudgetCards();
+  renderConsultTable();
+  renderKPIs();
+  if (document.getElementById("view-stats").classList.contains("active")) renderCharts();
+}
+renderAll();
+</script>
+</body>
+</html>
