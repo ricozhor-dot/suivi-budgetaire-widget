@@ -340,8 +340,16 @@ if (isGristAvailable()) {
   grist.ready({ columns: COLUMN_DEFS, requiredAccess: "full" });
 
   grist.onRecords((recs, maps) => {
-    mappings = maps;
-    records = grist.mapColumnNames(recs, maps).map(normalizeRecord);
+    mappings = maps || {};
+    const mappedRecords = grist.mapColumnNames(recs, maps);
+    if (!mappedRecords) {
+      records = [];
+      setStatus(false);
+      toast("Associez toutes les colonnes obligatoires dans les options du widget Grist.", true);
+      renderAll();
+      return;
+    }
+    records = mappedRecords.map(normalizeRecord);
     setStatus(true);
     renderAll();
   });
@@ -412,11 +420,37 @@ function mergeBudgets(saved){
   return out;
 }
 
-async function toGristFields(logicalFields){
-  if (mappings && grist.mapColumnNamesBack) {
-    try { return grist.mapColumnNamesBack(logicalFields, mappings); } catch(e) { /* fall through */ }
+function mappedColumnId(logicalName){
+  if (!mappings) return null;
+  const value = mappings[logicalName];
+  if (typeof value === "string" && value.trim()) return value;
+  if (value && typeof value === "object") {
+    return value.colId || value.columnId || value.id || null;
   }
-  return logicalFields; // fallback: assumes Grist column IDs match the logical names above
+  return null;
+}
+
+async function toGristFields(logicalFields){
+  const result = {};
+  const requiredNames = new Set(COLUMN_DEFS.filter(c => !c.optional).map(c => c.name));
+  const missing = [];
+
+  Object.entries(logicalFields).forEach(([logicalName, value]) => {
+    const colId = mappedColumnId(logicalName);
+    if (colId) {
+      result[colId] = value;
+    } else if (requiredNames.has(logicalName)) {
+      missing.push(logicalName);
+    }
+  });
+
+  if (missing.length) {
+    throw new Error("Colonnes Grist obligatoires non associées : " + missing.join(", "));
+  }
+  if (!Object.keys(result).length) {
+    throw new Error("Aucune colonne Grist n’est associée au widget.");
+  }
+  return result;
 }
 
 async function addRecord(fields){
