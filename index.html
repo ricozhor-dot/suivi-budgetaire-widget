@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.11 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.12 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -65,7 +65,7 @@
   table{width:100%;border-collapse:collapse;font-size:12.8px}th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;background:var(--accent);color:#fff;border-bottom:1px solid var(--accent);padding:9px 10px;cursor:pointer;user-select:none;white-space:nowrap}th:hover{background:var(--accent-dark)}td{padding:8px 10px;border:1px solid var(--line);vertical-align:middle}tr:nth-child(even) td{background:var(--surface-alt)}tr:hover td{background:#f0f4ff}
   .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}.badge-livree{background:var(--ok-soft);color:var(--ok)}.badge-attente{background:var(--warn-soft);color:var(--warn)}.badge-annulee{background:var(--danger-soft);color:var(--danger)}.badge-partielle{background:#edf2ff;color:var(--accent)}.badge-retour{background:#f3eafb;color:#6c3b7d}.badge-default{background:var(--surface-alt);color:var(--ink-soft)}
 
-  .site-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}.site-tabs button{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:12.8px;cursor:pointer;color:var(--accent)}.site-tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .secteur-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}.secteur-tabs button{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:12.8px;cursor:pointer;color:var(--accent)}.secteur-tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
   .budget-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:6px}.budget-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.04)}.budget-card::before{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:var(--accent)}.budget-card.over::before{background:var(--danger)}.budget-card .bc-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}.budget-card .bc-title{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);font-weight:700}.budget-card .bc-pct{font-family:"Courier New",monospace;font-size:13px;font-weight:700}.budget-card .bc-row{display:flex;justify-content:space-between;font-size:13px;margin-top:5px}.budget-card .bc-row .v{font-family:"Courier New",monospace;font-weight:700}.bc-solde-pos{color:var(--ok)}.bc-solde-neg{color:var(--danger)}.bar-track{height:8px;background:#e7ebf4;border-radius:6px;overflow:hidden;margin:10px 0 4px}.bar-fill{height:100%;border-radius:6px;background:var(--accent);transition:width .3s}.bar-fill.warn{background:#f2c952}.bar-fill.danger{background:#c94b4b}
   .filters-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}.filters-row input,.filters-row select{min-width:150px}.filters-row .search{flex:1;min-width:200px}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}.empty-state{padding:36px 20px;text-align:center;color:var(--ink-soft)}.empty-state .em-title{font-size:16px;color:var(--accent);font-weight:700;margin-bottom:4px}
   .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}.kpi-card{background:#f7f9ff;border:1px solid var(--line);border-radius:9px;padding:15px 18px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.04)}.kpi-card .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);font-weight:700}.kpi-card .kpi-value{font-size:26px;margin-top:4px;color:var(--accent);font-weight:700}.charts-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}.charts-grid .full{grid-column:1/-1}@media(max-width:820px){.charts-grid{grid-template-columns:1fr}}.chart-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:0 3px 10px rgba(0,0,0,.04)}.chart-box h3{font-size:13.5px;margin-bottom:10px;color:var(--accent)}.chart-box canvas{max-height:260px}
@@ -104,9 +104,9 @@
 <header class="app-header">
   <div class="header-top">
     <div class="brand">
-      <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
+      <img class="brand-logo" src="https://www.u-picardie.fr/secteurs/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.11</span></h1>
+        <h1>SELACV <span class="version-chip">V2.12</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -158,7 +158,7 @@
     <div class="dashboard-grid">
       <div class="stack">
         <div class="panel">
-          <div class="section-head"><div><h2>Consommation des budgets</h2><div class="desc">Synthèse par site et nature de dépense.</div></div><button class="section-link" data-go="stats">Voir les analyses →</button></div>
+          <div class="section-head"><div><h2>Consommation des budgets</h2><div class="desc">Synthèse par secteur et nature de dépense.</div></div><button class="section-link" data-go="stats">Voir les analyses →</button></div>
           <div class="budget-grid" id="dashboardBudgets"></div>
         </div>
         <div class="panel">
@@ -185,7 +185,7 @@
   <section class="view" id="view-saisie">
     <div class="panel">
       <h2>Nouvelle commande</h2>
-      <div class="desc">Saisissez une commande. Les listes sont alimentées par les valeurs déjà présentes dans Grist ; Site, Bâtiment et Équipe sont filtrés en cascade. Les champs marqués <span class="req">*</span> sont recommandés.</div>
+      <div class="desc">Saisissez une commande. Les listes sont alimentées par les valeurs déjà présentes dans Grist ; Secteur, Bâtiment et Équipe sont filtrés en cascade. Les champs marqués <span class="req">*</span> sont recommandés.</div>
 
       <form id="formSaisie">
         <div class="form-grid">
@@ -205,13 +205,13 @@
             </div>
           </div>
           <div class="field">
-            <label>Site <span class="req">*</span></label>
-            <input type="text" id="f_site" list="dl_sites" required autocomplete="off" placeholder="Sélectionner ou saisir">
-            <datalist id="dl_sites"></datalist>
+            <label>Secteur <span class="req">*</span></label>
+            <input type="text" id="f_secteur" list="dl_secteurs" required autocomplete="off" placeholder="Sélectionner ou saisir">
+            <datalist id="dl_secteurs"></datalist>
           </div>
           <div class="field">
             <label>Bâtiment</label>
-            <input type="text" id="f_batiment" list="dl_batiments" autocomplete="off" placeholder="Filtré selon le site">
+            <input type="text" id="f_batiment" list="dl_batiments" autocomplete="off" placeholder="Filtré selon le secteur">
             <datalist id="dl_batiments"></datalist>
           </div>
           <div class="field">
@@ -286,7 +286,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Date</th><th>Site</th><th>Type</th><th>Fournisseur</th><th>Objet</th>
+            <th>Date</th><th>Secteur</th><th>Type</th><th>Fournisseur</th><th>Objet</th>
             <th>Montant</th><th>État</th>
           </tr></thead>
           <tbody id="recentBody"></tbody>
@@ -352,7 +352,7 @@
           </div>
         </div>
         <div class="form-grid">
-          <div class="field"><label>Site</label><select id="e_site" required><option>Cathédrale</option><option>Citadelle</option><option>Saint-Leu</option></select></div>
+          <div class="field"><label>Secteur</label><select id="e_secteur" required><option>Cathédrale</option><option>Citadelle</option><option>Saint-Leu</option></select></div>
           <div class="field"><label>Date</label><input type="date" id="e_date" required></div>
           <div class="field"><label>N° BC / OS</label><input type="text" id="e_numbc"></div>
           <div class="field"><label>Centre de coût</label><input type="text" id="e_centrecout"></div>
@@ -377,11 +377,11 @@
 
   <!-- ============ VUE 2 : CONSULTATION ============ -->
   <section class="view" id="view-consult">
-    <div class="site-tabs" id="siteTabs">
-      <button class="on" data-site="__all__">Vue globale</button>
-      <button data-site="Cathédrale">Cathédrale</button>
-      <button data-site="Citadelle">Citadelle</button>
-      <button data-site="Saint-Leu">Saint-Leu</button>
+    <div class="secteur-tabs" id="secteurTabs">
+      <button class="on" data-secteur="__all__">Vue globale</button>
+      <button data-secteur="Cathédrale">Cathédrale</button>
+      <button data-secteur="Citadelle">Citadelle</button>
+      <button data-secteur="Saint-Leu">Saint-Leu</button>
     </div>
 
     <div class="budget-grid" id="budgetCards"></div>
@@ -406,7 +406,7 @@
       <div class="table-wrap">
         <table id="consultTable">
           <thead><tr>
-            <th data-k="Date">Date</th><th data-k="Site">Site</th><th data-k="Type">Type</th>
+            <th data-k="Date">Date</th><th data-k="Secteur">Secteur</th><th data-k="Type">Type</th>
             <th data-k="Fournisseur">Fournisseur</th><th data-k="Categorie">Catégorie</th>
             <th data-k="Objet">Objet</th><th data-k="MontantTTC">Montant</th><th data-k="EtatCommande">État</th><th>Action</th>
           </tr></thead>
@@ -430,7 +430,7 @@
     <div class="kpi-grid" id="kpiGrid"></div>
 
     <div class="charts-grid">
-      <div class="chart-box"><h3>Engagé par site (Fonct. / Invest.)</h3><canvas id="chartSite"></canvas></div>
+      <div class="chart-box"><h3>Engagé par secteur (Fonct. / Invest.)</h3><canvas id="chartSecteur"></canvas></div>
       <div class="chart-box"><h3>Répartition par catégorie</h3><canvas id="chartCategorie"></canvas></div>
       <div class="chart-box full"><h3>Évolution mensuelle des engagements</h3><canvas id="chartMonthly"></canvas></div>
       <div class="chart-box"><h3>Top 10 fournisseurs</h3><canvas id="chartFournisseurs"></canvas></div>
@@ -446,7 +446,7 @@
 <div class="modal-backdrop" id="budgetModal">
   <div class="modal">
     <h2>Configurer les budgets</h2>
-    <div class="desc" style="margin-top:2px; color:var(--ink-soft); font-size:12.5px;">Montants disponibles initiaux, par site et par nature de dépense.</div>
+    <div class="desc" style="margin-top:2px; color:var(--ink-soft); font-size:12.5px;">Montants disponibles initiaux, par secteur et par nature de dépense.</div>
     <div class="budget-config-grid" id="budgetConfigGrid"></div>
     <div class="form-actions">
       <button class="btn btn-ghost" id="btnCancelBudgets">Annuler</button>
@@ -457,29 +457,29 @@
 
 <script>
 /* ================= CONFIG ================= */
-const SITES = ["Cathédrale","Citadelle","Saint-Leu"];
+const SECTEURS = ["Cathédrale","Citadelle","Saint-Leu"];
 const TYPES = ["Fonctionnement","Investissement"];
 
 const COLUMN_DEFS = [
   {name:"Date", title:"Date", type:"Date"},
-  {name:"Type", title:"Type (Fonctionnement / Investissement)", type:"Text"},
-  {name:"Site", title:"Site", type:"Text,Choice"},
-  {name:"Batiment", title:"Bâtiment", type:"Text,Choice,ChoiceList", optional:true},
-  {name:"Equipe", title:"Équipe", type:"Text,Choice,ChoiceList", optional:true},
-  {name:"DC", title:"D/C", type:"Text,Choice", optional:true},
-  {name:"NumBC", title:"N° BC / OS", type:"Text,Choice", optional:true},
-  {name:"CentreCout", title:"Centre de coût", type:"Text,Choice,ChoiceList", optional:true},
-  {name:"Fournisseur", title:"Fournisseur", type:"Text,Choice,ChoiceList"},
-  {name:"CentraleAchat", title:"Centrale d'achat", type:"Text,Choice,ChoiceList", optional:true},
-  {name:"Categorie", title:"Catégorie", type:"Text,Choice,ChoiceList"},
-  {name:"Objet", title:"Objet de la commande", type:"Text"},
-  {name:"Marches", title:"Marchés", type:"Text,Choice,ChoiceList", optional:true},
-  {name:"Motivations", title:"Motivations d'achats", type:"Text", optional:true},
+  {name:"Type", title:"Type (Fonctionnement / Investissement)"},
+  {name:"Secteur", title:"Secteur"},
+  {name:"Batiment", title:"Bâtiment", optional:true},
+  {name:"Equipe", title:"Équipe", optional:true},
+  {name:"DC", title:"D/C", optional:true},
+  {name:"NumBC", title:"N° BC / OS", optional:true},
+  {name:"CentreCout", title:"Centre de coût", optional:true},
+  {name:"Fournisseur", title:"Fournisseur"},
+  {name:"CentraleAchat", title:"Centrale d'achat", optional:true},
+  {name:"Categorie", title:"Catégorie"},
+  {name:"Objet", title:"Objet de la commande"},
+  {name:"Marches", title:"Marchés", optional:true},
+  {name:"Motivations", title:"Motivations d'achats", optional:true},
   {name:"MontantTTC", title:"Montant TTC", type:"Numeric"},
-  {name:"Validation", title:"Validation (agent)", type:"Text,Choice,ChoiceList", optional:true},
+  {name:"Validation", title:"Validation (agent)", optional:true},
   {name:"DateEnvoi", title:"Date d'envoi", type:"Date", optional:true},
-  {name:"EtatCommande", title:"Etat commande", type:"Text,Choice,ChoiceList"},
-  {name:"PostesManquants", title:"Postes manquants", type:"Text,Choice,ChoiceList", optional:true},
+  {name:"EtatCommande", title:"Etat commande"},
+  {name:"PostesManquants", title:"Postes manquants", optional:true},
 ];
 
 const DEFAULT_BUDGETS = {
@@ -492,7 +492,7 @@ const DEFAULT_BUDGETS = {
 let records = [];        // logical-named records from grist
 let mappings = null;
 let budgets = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
-let selectedSite = "__all__";
+let selectedSecteur = "__all__";
 let selectedType = "Fonctionnement"; // for saisie form
 let selectedEditType = "Fonctionnement";
 let sortKey = "Date", sortDir = -1;
@@ -545,7 +545,7 @@ function normalizeRecord(r){
     id: r.id,
     Date: r.Date ? toDateStr(r.Date) : "",
     Type: r.Type || "Fonctionnement",
-    Site: r.Site || "",
+    Secteur: r.Secteur || "",
     Batiment: r.Batiment || "",
     Equipe: r.Equipe || "",
     DC: r.DC || "",
@@ -583,7 +583,7 @@ function dateToGrist(str){
 
 function mergeBudgets(saved){
   const out = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
-  SITES.forEach(s => { TYPES.forEach(t => {
+  SECTEURS.forEach(s => { TYPES.forEach(t => {
     if (saved[s] && saved[s][t] != null) out[s][t] = Number(saved[s][t]) || 0;
   });});
   return out;
@@ -701,7 +701,7 @@ document.getElementById("formSaisie").addEventListener("submit", async (e)=>{
     const fields = {
       Date: dateToGrist(document.getElementById("f_date").value),
       Type: selectedType,
-      Site: document.getElementById("f_site").value,
+      Secteur: document.getElementById("f_secteur").value,
       Batiment: document.getElementById("f_batiment").value,
       Equipe: document.getElementById("f_equipe").value,
       NumBC: document.getElementById("f_numbc").value,
@@ -719,13 +719,13 @@ document.getElementById("formSaisie").addEventListener("submit", async (e)=>{
     };
     await addRecord(fields);
     toast("Commande ajoutée ✓");
-    const keepSite = document.getElementById("f_site").value;
+    const keepSecteur = document.getElementById("f_secteur").value;
     const keepBatiment = document.getElementById("f_batiment").value;
     const keepEquipe = document.getElementById("f_equipe").value;
     const keepValidation = document.getElementById("f_validation").value;
     document.getElementById("formSaisie").reset();
     document.getElementById("f_date").valueAsDate = new Date();
-    document.getElementById("f_site").value = keepSite;
+    document.getElementById("f_secteur").value = keepSecteur;
     refreshBatimentOptions();
     document.getElementById("f_batiment").value = keepBatiment;
     refreshEquipeOptions();
@@ -745,7 +745,7 @@ function renderRecentEntries(){
   body.innerHTML = recent.map(r=>`
     <tr>
       <td>${r.Date||"—"}</td>
-      <td>${r.Site||"—"}</td>
+      <td>${r.Secteur||"—"}</td>
       <td>${r.Type||"—"}</td>
       <td>${escapeHtml(r.Fournisseur)}</td>
       <td>${escapeHtml(r.Objet)}</td>
@@ -814,7 +814,7 @@ function previewEditRecord(id){
   if([...results.options].some(o=>o.value===String(r.id))) results.value=String(r.id);
   const preview=document.getElementById("editPreview");
   preview.className="edit-preview";
-  preview.innerHTML=`<div class="edit-preview-head"><div><div class="edit-preview-title">${escapeHtml(r.NumBC||"Commande sans N° BC")}</div><small>${escapeHtml(r.Objet||"Objet non renseigné")}</small></div>${badge(r.EtatCommande)}</div><div class="edit-preview-grid"><div><span>Fournisseur</span><strong>${escapeHtml(r.Fournisseur||"—")}</strong></div><div><span>Montant TTC</span><strong>${fmtEUR(r.MontantTTC)}</strong></div><div><span>Date</span><strong>${r.Date||"—"}</strong></div><div><span>Site</span><strong>${escapeHtml(r.Site||"—")}</strong></div><div><span>Catégorie</span><strong>${escapeHtml(r.Categorie||"—")}</strong></div><div><span>Type</span><strong>${escapeHtml(r.Type||"—")}</strong></div></div>`;
+  preview.innerHTML=`<div class="edit-preview-head"><div><div class="edit-preview-title">${escapeHtml(r.NumBC||"Commande sans N° BC")}</div><small>${escapeHtml(r.Objet||"Objet non renseigné")}</small></div>${badge(r.EtatCommande)}</div><div class="edit-preview-grid"><div><span>Fournisseur</span><strong>${escapeHtml(r.Fournisseur||"—")}</strong></div><div><span>Montant TTC</span><strong>${fmtEUR(r.MontantTTC)}</strong></div><div><span>Date</span><strong>${r.Date||"—"}</strong></div><div><span>Secteur</span><strong>${escapeHtml(r.Secteur||"—")}</strong></div><div><span>Catégorie</span><strong>${escapeHtml(r.Categorie||"—")}</strong></div><div><span>Type</span><strong>${escapeHtml(r.Type||"—")}</strong></div></div>`;
   document.getElementById("btnOpenEdit").disabled=false;
 }
 function clearEditPreview(){
@@ -832,7 +832,7 @@ function loadEditRecord(id){
   document.getElementById("edit_id").value=r.id;
   selectedEditType=r.Type||"Fonctionnement";
   document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on",b.dataset.type===selectedEditType));
-  const values={e_site:r.Site,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
+  const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
   Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??"";});
   updateEditNavigation(r.id);
   form.scrollIntoView({behavior:"smooth",block:"start"});
@@ -875,7 +875,7 @@ document.getElementById("formModifier").addEventListener("submit",async e=>{
   e.preventDefault();const btn=document.getElementById("btnSaveEdit");btn.disabled=true;
   try{
     const id=Number(document.getElementById("edit_id").value);
-    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Site:document.getElementById("e_site").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value,PostesManquants:document.getElementById("e_postes").value};
+    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Secteur:document.getElementById("e_secteur").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value,PostesManquants:document.getElementById("e_postes").value};
     await updateRecord(id,fields);toast("Commande modifiée ✓");
   }catch(err){console.error(err);toast("Erreur lors de la modification : "+(err.message||err),true);}finally{btn.disabled=false;}
 });
@@ -887,11 +887,11 @@ function openEditRecord(id){
 }
 
 /* ================= CONSULTATION ================= */
-document.getElementById("siteTabs").addEventListener("click", (e)=>{
+document.getElementById("secteurTabs").addEventListener("click", (e)=>{
   const btn = e.target.closest("button"); if(!btn) return;
-  document.querySelectorAll("#siteTabs button").forEach(b=>b.classList.remove("on"));
+  document.querySelectorAll("#secteurTabs button").forEach(b=>b.classList.remove("on"));
   btn.classList.add("on");
-  selectedSite = btn.dataset.site;
+  selectedSecteur = btn.dataset.secteur;
   renderBudgetCards();
   renderConsultTable();
 });
@@ -916,14 +916,14 @@ document.querySelectorAll("#consultTable th[data-k]").forEach(th=>{
   });
 });
 
-function engagedRecords(site){
-  return records.filter(r => r.EtatCommande !== "Annulée" && (site==="__all__" || r.Site===site));
+function engagedRecords(secteur){
+  return records.filter(r => r.EtatCommande !== "Annulée" && (secteur==="__all__" || r.Secteur===secteur));
 }
 
-function computeBudgetFor(site, type){
-  const init = (budgets[site] && budgets[site][type]) || 0;
+function computeBudgetFor(secteur, type){
+  const init = (budgets[secteur] && budgets[secteur][type]) || 0;
   const engaged = records
-    .filter(r=> r.Site===site && r.Type===type && r.EtatCommande!=="Annulée")
+    .filter(r=> r.Secteur===secteur && r.Type===type && r.EtatCommande!=="Annulée")
     .reduce((s,r)=> s+r.MontantTTC, 0);
   const solde = init - engaged;
   const pct = init>0 ? Math.min(999, (engaged/init)*100) : (engaged>0 ? 100 : 0);
@@ -932,17 +932,17 @@ function computeBudgetFor(site, type){
 
 function renderBudgetCards(){
   const wrap = document.getElementById("budgetCards");
-  const sitesToShow = selectedSite==="__all__" ? SITES : [selectedSite];
+  const secteursToShow = selectedSecteur==="__all__" ? SECTEURS : [selectedSecteur];
   let cards = "";
-  sitesToShow.forEach(site=>{
+  secteursToShow.forEach(secteur=>{
     TYPES.forEach(type=>{
-      const b = computeBudgetFor(site,type);
+      const b = computeBudgetFor(secteur,type);
       const over = b.solde < 0;
       const barClass = b.pct>=100 ? "danger" : (b.pct>=80 ? "warn" : "");
       cards += `
         <div class="budget-card ${over?"over":""}">
           <div class="bc-head">
-            <div class="bc-title">${site} · ${type}</div>
+            <div class="bc-title">${secteur} · ${type}</div>
             <div class="bc-pct" style="color:${over?"var(--danger)":"var(--ink-soft)"}">${b.pct.toFixed(0)}%</div>
           </div>
           <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${Math.min(100,b.pct)}%"></div></div>
@@ -953,11 +953,11 @@ function renderBudgetCards(){
     });
   });
   // Global aggregate cards when "vue globale"
-  if (selectedSite==="__all__"){
+  if (selectedSecteur==="__all__"){
     let g = {};
     TYPES.forEach(type=>{
       let init=0, engaged=0;
-      SITES.forEach(site=>{ const b=computeBudgetFor(site,type); init+=b.init; engaged+=b.engaged; });
+      SECTEURS.forEach(secteur=>{ const b=computeBudgetFor(secteur,type); init+=b.init; engaged+=b.engaged; });
       g[type] = {init, engaged, solde:init-engaged, pct: init>0? (engaged/init)*100 : (engaged>0?100:0)};
     });
     let globalCards = "";
@@ -967,7 +967,7 @@ function renderBudgetCards(){
       globalCards += `
         <div class="budget-card ${over?"over":""}" style="background:var(--accent-soft);">
           <div class="bc-head">
-            <div class="bc-title">Tous sites · ${type}</div>
+            <div class="bc-title">Tous secteurs · ${type}</div>
             <div class="bc-pct" style="color:${over?"var(--danger)":"var(--ink-soft)"}">${b.pct.toFixed(0)}%</div>
           </div>
           <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${Math.min(100,b.pct)}%"></div></div>
@@ -988,7 +988,7 @@ function renderConsultTable(){
   const cat = document.getElementById("q_categorie").value;
 
   let rows = records.filter(r=>{
-    if (selectedSite!=="__all__" && r.Site!==selectedSite) return false;
+    if (selectedSecteur!=="__all__" && r.Secteur!==selectedSecteur) return false;
     if (type && r.Type!==type) return false;
     if (etat && r.EtatCommande!==etat) return false;
     if (cat && r.Categorie!==cat) return false;
@@ -1010,7 +1010,7 @@ function renderConsultTable(){
   document.getElementById("consultBody").innerHTML = rows.map(r=>`
     <tr>
       <td>${r.Date||"—"}</td>
-      <td>${r.Site||"—"}</td>
+      <td>${r.Secteur||"—"}</td>
       <td>${r.Type||"—"}</td>
       <td>${escapeHtml(r.Fournisseur)}</td>
       <td>${escapeHtml(r.Categorie)}</td>
@@ -1038,7 +1038,7 @@ function badge(etat){
 
 /* ================= DATALISTS (autocomplete) ================= */
 function renderDatalists(){
-  fillDatalist("dl_sites", [...SITES, ...records.map(r=>r.Site)]);
+  fillDatalist("dl_secteurs", [...SECTEURS, ...records.map(r=>r.Secteur)]);
   fillDatalist("dl_centrescout", records.map(r=>r.CentreCout));
   fillDatalist("dl_fournisseurs", records.map(r=>r.Fournisseur));
   fillDatalist("dl_centrales", records.map(r=>r.CentraleAchat));
@@ -1051,8 +1051,8 @@ function renderDatalists(){
 }
 
 function refreshBatimentOptions(clearInvalid=true){
-  const site=(document.getElementById("f_site")?.value||"").trim();
-  let values=records.filter(r=>!site || r.Site===site).map(r=>r.Batiment);
+  const secteur=(document.getElementById("f_secteur")?.value||"").trim();
+  let values=records.filter(r=>!secteur || r.Secteur===secteur).map(r=>r.Batiment);
   if(!values.some(Boolean)) values=records.map(r=>r.Batiment);
   fillDatalist("dl_batiments", values);
   const input=document.getElementById("f_batiment");
@@ -1062,10 +1062,10 @@ function refreshBatimentOptions(clearInvalid=true){
 }
 
 function refreshEquipeOptions(clearInvalid=true){
-  const site=(document.getElementById("f_site")?.value||"").trim();
+  const secteur=(document.getElementById("f_secteur")?.value||"").trim();
   const batiment=(document.getElementById("f_batiment")?.value||"").trim();
-  let values=records.filter(r=>(!site || r.Site===site) && (!batiment || r.Batiment===batiment)).map(r=>r.Equipe);
-  if(!values.some(Boolean)) values=records.filter(r=>!site || r.Site===site).map(r=>r.Equipe);
+  let values=records.filter(r=>(!secteur || r.Secteur===secteur) && (!batiment || r.Batiment===batiment)).map(r=>r.Equipe);
+  if(!values.some(Boolean)) values=records.filter(r=>!secteur || r.Secteur===secteur).map(r=>r.Equipe);
   if(!values.some(Boolean)) values=records.map(r=>r.Equipe);
   fillDatalist("dl_equipes", values);
   const input=document.getElementById("f_equipe");
@@ -1073,8 +1073,8 @@ function refreshEquipeOptions(clearInvalid=true){
   if(clearInvalid && input && input.value && allowed.size && !allowed.has(input.value)) input.value="";
 }
 
-document.getElementById("f_site").addEventListener("input", ()=>refreshBatimentOptions(true));
-document.getElementById("f_site").addEventListener("change", ()=>refreshBatimentOptions(true));
+document.getElementById("f_secteur").addEventListener("input", ()=>refreshBatimentOptions(true));
+document.getElementById("f_secteur").addEventListener("change", ()=>refreshBatimentOptions(true));
 document.getElementById("f_batiment").addEventListener("input", ()=>refreshEquipeOptions(true));
 document.getElementById("f_batiment").addEventListener("change", ()=>refreshEquipeOptions(true));
 function fillDatalist(id, values){
@@ -1088,9 +1088,9 @@ document.getElementById("btnConfigBudgets").addEventListener("click", openBudget
 document.getElementById("btnCancelBudgets").addEventListener("click", ()=> document.getElementById("budgetModal").classList.remove("open"));
 document.getElementById("btnSaveBudgets").addEventListener("click", ()=>{
   const newBudgets = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
-  SITES.forEach(site=>{ TYPES.forEach(type=>{
-    const input = document.getElementById(`bud_${site}_${type}`);
-    newBudgets[site][type] = parseFloat(input.value) || 0;
+  SECTEURS.forEach(secteur=>{ TYPES.forEach(type=>{
+    const input = document.getElementById(`bud_${secteur}_${type}`);
+    newBudgets[secteur][type] = parseFloat(input.value) || 0;
   });});
   saveBudgets(newBudgets);
   document.getElementById("budgetModal").classList.remove("open");
@@ -1100,11 +1100,11 @@ document.getElementById("btnSaveBudgets").addEventListener("click", ()=>{
 function openBudgetModal(){
   const grid = document.getElementById("budgetConfigGrid");
   grid.innerHTML = "";
-  SITES.forEach(site=>{
+  SECTEURS.forEach(secteur=>{
     TYPES.forEach(type=>{
       const div = document.createElement("div");
       div.className = "field";
-      div.innerHTML = `<label>${site} · ${type}</label><input type="number" step="0.01" id="bud_${site}_${type}" value="${budgets[site][type]}">`;
+      div.innerHTML = `<label>${secteur} · ${type}</label><input type="number" step="0.01" id="bud_${secteur}_${type}" value="${budgets[secteur][type]}">`;
       grid.appendChild(div);
     });
   });
@@ -1113,23 +1113,23 @@ function openBudgetModal(){
 
 document.getElementById("btnExport").addEventListener("click", exportCSV);
 function exportCSV(){
-  const headers = ["Date","Type","Site","N° BC","Centre de coût","Fournisseur","Centrale d'achat","Catégorie","Objet","Marché","Montant TTC","Validation","État commande"];
+  const headers = ["Date","Type","Secteur","N° BC","Centre de coût","Fournisseur","Centrale d'achat","Catégorie","Objet","Marché","Montant TTC","Validation","État commande"];
   const lines = [headers.join(";")];
   records.forEach(r=>{
-    lines.push([r.Date,r.Type,r.Site,r.NumBC,r.CentreCout,r.Fournisseur,r.CentraleAchat,r.Categorie,r.Objet,r.Marches,r.MontantTTC,r.Validation,r.EtatCommande]
+    lines.push([r.Date,r.Type,r.Secteur,r.NumBC,r.CentreCout,r.Fournisseur,r.CentraleAchat,r.Categorie,r.Objet,r.Marches,r.MontantTTC,r.Validation,r.EtatCommande]
       .map(v=> `"${String(v??"").replace(/"/g,'""')}"`).join(";"));
   });
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.11_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.12_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
 function renderKPIs(){
   const eng = engagedRecords("__all__");
   const totalEngaged = eng.reduce((s,r)=>s+r.MontantTTC,0);
-  const totalInit = SITES.reduce((s,site)=> s + TYPES.reduce((s2,t)=> s2+(budgets[site][t]||0),0), 0);
+  const totalInit = SECTEURS.reduce((s,secteur)=> s + TYPES.reduce((s2,t)=> s2+(budgets[secteur][t]||0),0), 0);
   const nbCommandes = records.length;
   const panierMoyen = eng.length ? totalEngaged/eng.length : 0;
   const livrees = records.filter(r=>r.EtatCommande==="Livrée").length;
@@ -1150,17 +1150,17 @@ function renderKPIs(){
 function renderCharts(){
   const palette = ["#22356f","#86a6fc","#8bc48f","#f2c952","#9a9b9c","#6d78a8","#5e8f63","#b45d5d"];
 
-  // Par site (groupé Fonct/Invest)
-  const bySite = SITES.map(site=>({
-    site,
-    Fonctionnement: records.filter(r=>r.Site===site&&r.Type==="Fonctionnement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
-    Investissement: records.filter(r=>r.Site===site&&r.Type==="Investissement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
+  // Par secteur (groupé Fonct/Invest)
+  const bySecteur = SECTEURS.map(secteur=>({
+    secteur,
+    Fonctionnement: records.filter(r=>r.Secteur===secteur&&r.Type==="Fonctionnement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
+    Investissement: records.filter(r=>r.Secteur===secteur&&r.Type==="Investissement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
   }));
-  mkChart("chartSite","bar",{
-    labels: bySite.map(s=>s.site),
+  mkChart("chartSecteur","bar",{
+    labels: bySecteur.map(s=>s.secteur),
     datasets:[
-      {label:"Fonctionnement", data:bySite.map(s=>s.Fonctionnement), backgroundColor:"#22356f", borderRadius:5},
-      {label:"Investissement", data:bySite.map(s=>s.Investissement), backgroundColor:"#86a6fc", borderRadius:5},
+      {label:"Fonctionnement", data:bySecteur.map(s=>s.Fonctionnement), backgroundColor:"#22356f", borderRadius:5},
+      {label:"Investissement", data:bySecteur.map(s=>s.Investissement), backgroundColor:"#86a6fc", borderRadius:5},
     ]
   },{ plugins:{legend:{position:"bottom"}}, scales:{y:{beginAtZero:true}} });
 
@@ -1280,7 +1280,7 @@ function renderDailyWelcome(){
 
 /* ================= TABLEAU DE BORD V2 ================= */
 function budgetTotals(){
-  const initial=SITES.reduce((sum,s)=>sum+TYPES.reduce((x,t)=>x+(budgets[s][t]||0),0),0);
+  const initial=SECTEURS.reduce((sum,s)=>sum+TYPES.reduce((x,t)=>x+(budgets[s][t]||0),0),0);
   const engaged=engagedRecords("__all__").reduce((sum,r)=>sum+r.MontantTTC,0);
   return {initial,engaged,remaining:initial-engaged,pct:initial>0?engaged/initial*100:0};
 }
@@ -1300,9 +1300,9 @@ function renderDashboard(){
   document.getElementById("dashRefresh").textContent=new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
 
   let budgetHtml="";
-  SITES.forEach(site=>TYPES.forEach(type=>{
-    const b=computeBudgetFor(site,type), cls=b.pct>=100?"danger":b.pct>=80?"warn":"";
-    budgetHtml+=`<div class="budget-card ${b.solde<0?"over":""}"><div class="bc-head"><div class="bc-title">${site} · ${type}</div><div class="bc-pct">${b.pct.toFixed(0)}%</div></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(100,b.pct)}%"></div></div><div class="bc-row"><span>Engagé</span><span class="v">${fmtEUR(b.engaged)}</span></div><div class="bc-row"><span>Disponible</span><span class="v ${b.solde<0?"bc-solde-neg":"bc-solde-pos"}">${fmtEUR(b.solde)}</span></div></div>`;
+  SECTEURS.forEach(secteur=>TYPES.forEach(type=>{
+    const b=computeBudgetFor(secteur,type), cls=b.pct>=100?"danger":b.pct>=80?"warn":"";
+    budgetHtml+=`<div class="budget-card ${b.solde<0?"over":""}"><div class="bc-head"><div class="bc-title">${secteur} · ${type}</div><div class="bc-pct">${b.pct.toFixed(0)}%</div></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(100,b.pct)}%"></div></div><div class="bc-row"><span>Engagé</span><span class="v">${fmtEUR(b.engaged)}</span></div><div class="bc-row"><span>Disponible</span><span class="v ${b.solde<0?"bc-solde-neg":"bc-solde-pos"}">${fmtEUR(b.solde)}</span></div></div>`;
   }));
   document.getElementById("dashboardBudgets").innerHTML=budgetHtml;
 
@@ -1310,12 +1310,12 @@ function renderDashboard(){
   document.getElementById("dashboardRecent").innerHTML=latest.map(r=>`<div class="mini-row"><span>${r.Date||"—"}</span><span><strong>${escapeHtml(r.Fournisseur)||"Fournisseur non renseigné"}</strong><br>${escapeHtml(r.Objet)||"Objet non renseigné"}</span><span class="amount">${fmtEUR(r.MontantTTC)}</span></div>`).join("")||'<div class="empty-state">Aucune commande enregistrée.</div>';
 
   const alerts=[];
-  SITES.forEach(site=>TYPES.forEach(type=>{const b=computeBudgetFor(site,type);if(b.init>0&&b.pct>=100)alerts.push({c:"danger",t:`Budget dépassé · ${site}`,d:`${type} : ${b.pct.toFixed(0)} % consommés.`});else if(b.init>0&&b.pct>=80)alerts.push({c:"warn",t:`Seuil de vigilance · ${site}`,d:`${type} : ${b.pct.toFixed(0)} % consommés.`});}));
-  if(missing.length) alerts.push({c:"warn",t:"Postes manquants",d:`${missing.length} commande(s) nécessitent un complément.`});
+  SECTEURS.forEach(secteur=>TYPES.forEach(type=>{const b=computeBudgetFor(secteur,type);if(b.init>0&&b.pct>=100)alerts.push({c:"danger",t:`Budget dépassé · ${secteur}`,d:`${type} : ${b.pct.toFixed(0)} % consommés.`});else if(b.init>0&&b.pct>=80)alerts.push({c:"warn",t:`Seuil de vigilance · ${secteur}`,d:`${type} : ${b.pct.toFixed(0)} % consommés.`});}));
+  if(missing.length) alerts.push({c:"warn",t:"Postes manquants",d:`${missing.length} commande(s) nécessecteurnt un complément.`});
   if(!alerts.length) alerts.push({c:"",t:"Aucune alerte majeure",d:"Les indicateurs disponibles ne signalent pas de dépassement."});
   document.getElementById("dashboardAlerts").innerHTML=alerts.slice(0,8).map(a=>`<div class="alert-item ${a.c}"><div class="alert-icon">${a.c==="danger"?"!":a.c==="warn"?"△":"✓"}</div><div class="alert-copy"><strong>${a.t}</strong><span>${a.d}</span></div></div>`).join("");
 
-  document.getElementById("dashboardPending").innerHTML=pending.slice(0,7).map(r=>`<div class="mini-row"><span>${badge(r.EtatCommande)}</span><span>${escapeHtml(r.Objet)||"Commande sans objet"}<br><small>${escapeHtml(r.Site)} · ${escapeHtml(r.Fournisseur)}</small></span><span class="amount">${fmtEUR(r.MontantTTC)}</span></div>`).join("")||'<div class="empty-state">Aucune commande à traiter.</div>';
+  document.getElementById("dashboardPending").innerHTML=pending.slice(0,7).map(r=>`<div class="mini-row"><span>${badge(r.EtatCommande)}</span><span>${escapeHtml(r.Objet)||"Commande sans objet"}<br><small>${escapeHtml(r.Secteur)} · ${escapeHtml(r.Fournisseur)}</small></span><span class="amount">${fmtEUR(r.MontantTTC)}</span></div>`).join("")||'<div class="empty-state">Aucune commande à traiter.</div>';
 }
 
 /* ================= MASTER RENDER ================= */
