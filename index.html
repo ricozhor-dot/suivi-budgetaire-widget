@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.3 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.3.1 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -107,7 +107,7 @@
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.3</span></h1>
+        <h1>SELACV <span class="version-chip">V2.3.1</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -131,7 +131,7 @@
 <main>
 
 
-  <!-- ============ VUE 0 : TABLEAU DE BORD V2.3 ============ -->
+  <!-- ============ VUE 0 : TABLEAU DE BORD V2.3.1 ============ -->
   <section class="view active" id="view-dashboard">
     <div class="hero">
       <div class="hero-main">
@@ -453,7 +453,7 @@
     <div class="kpi-grid" id="kpiGrid"></div>
 
     <div class="charts-grid">
-      <div class="chart-box"><h3>Engagé par secteur (Fonct. / Invest.)</h3><canvas id="chartSecteur"></canvas></div>
+      <div class="chart-box"><h3>Engagé par secteur budgétaire (selon le centre de coût)</h3><canvas id="chartSecteur"></canvas></div>
       <div class="chart-box"><h3>Engagé par bâtiment</h3><canvas id="chartBatiment"></canvas></div>
       <div class="chart-box full"><h3>Engagé par équipe</h3><canvas id="chartEquipe"></canvas></div>
       <div class="chart-box"><h3>Répartition par catégorie</h3><canvas id="chartCategorie"></canvas></div>
@@ -461,7 +461,7 @@
       <div class="chart-box"><h3>Top 10 fournisseurs</h3><canvas id="chartFournisseurs"></canvas></div>
       <div class="chart-box"><h3>État des commandes</h3><canvas id="chartEtat"></canvas></div>
     </div>
-    <div class="footnote">Les commandes à l'état « Annulée » sont exclues des montants engagés mais comptabilisées dans le nombre total de commandes.</div>
+    <div class="footnote">Les commandes « Annulée » sont exclues des engagements. Le secteur budgétaire est déterminé par le centre de coût : COSL = Saint-Leu, COCITAD = Citadelle, COPUC = Cathédrale.</div>
   </section>
 
 </main>
@@ -921,6 +921,7 @@ function loadEditRecord(id){
   document.getElementById("edit_id").value=r.id;
   selectedEditType=r.Type||"Fonctionnement";
   document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on",b.dataset.type===selectedEditType));
+  fillSelect("e_secteur", combinedChoices("Secteur", [...SECTEURS, ...records.map(x=>x.Secteur)]), "Choix du secteur", r.Secteur, false);
   const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
   Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??"";});
   updateEditNavigation(r.id);
@@ -1005,14 +1006,28 @@ document.querySelectorAll("#consultTable th[data-k]").forEach(th=>{
   });
 });
 
+/* Le secteur budgétaire est déterminé par le centre de coût.
+   Le champ Secteur reste librement modifiable et sert de solution de repli. */
+function secteurDepuisCentreCout(centreCout){
+  const code = String(centreCout || "").trim().toUpperCase();
+  if (/\bCOCITAD\b/.test(code)) return "Citadelle";
+  if (/\bCOPUC\b/.test(code)) return "Cathédrale";
+  if (/\bCOSL\b/.test(code)) return "Saint-Leu";
+  return "";
+}
+
+function secteurEngagement(record){
+  return secteurDepuisCentreCout(record.CentreCout) || record.Secteur || "Non renseigné";
+}
+
 function engagedRecords(secteur){
-  return records.filter(r => r.EtatCommande !== "Annulée" && (secteur==="__all__" || r.Secteur===secteur));
+  return records.filter(r => r.EtatCommande !== "Annulée" && (secteur==="__all__" || secteurEngagement(r)===secteur));
 }
 
 function computeBudgetFor(secteur, type){
   const init = (budgets[secteur] && budgets[secteur][type]) || 0;
   const engaged = records
-    .filter(r=> r.Secteur===secteur && r.Type===type && r.EtatCommande!=="Annulée")
+    .filter(r=> secteurEngagement(r)===secteur && r.Type===type && r.EtatCommande!=="Annulée")
     .reduce((s,r)=> s+r.MontantTTC, 0);
   const solde = init - engaged;
   const pct = init>0 ? Math.min(999, (engaged/init)*100) : (engaged>0 ? 100 : 0);
@@ -1268,8 +1283,8 @@ function renderCharts(){
   // Par secteur (groupé Fonct/Invest)
   const bySecteur = SECTEURS.map(secteur=>({
     secteur,
-    Fonctionnement: records.filter(r=>r.Secteur===secteur&&r.Type==="Fonctionnement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
-    Investissement: records.filter(r=>r.Secteur===secteur&&r.Type==="Investissement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
+    Fonctionnement: records.filter(r=>secteurEngagement(r)===secteur&&r.Type==="Fonctionnement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
+    Investissement: records.filter(r=>secteurEngagement(r)===secteur&&r.Type==="Investissement"&&r.EtatCommande!=="Annulée").reduce((s,r)=>s+r.MontantTTC,0),
   }));
   mkChart("chartSecteur","bar",{
     labels: bySecteur.map(s=>s.secteur),
