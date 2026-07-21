@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.3.1 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.3.2 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -78,8 +78,12 @@
   .edit-preview.empty{display:flex;align-items:center;justify-content:center;color:var(--ink-soft);text-align:center}
   .edit-preview-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
   .edit-preview-title{font-size:15px;font-weight:700;color:var(--accent)}
-  .edit-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px;font-size:12.5px}
+  .edit-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 14px;font-size:12.5px}
   .edit-preview-grid span{color:var(--ink-soft)} .edit-preview-grid strong{display:block;color:var(--ink);margin-top:1px;overflow-wrap:anywhere}
+  .edit-preview-grid .preview-wide{grid-column:1/-1;padding-top:8px;border-top:1px solid var(--line)}
+  .edit-preview-grid .preview-alert strong{color:var(--danger)}
+  .edit-preview-meta{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+  .edit-preview-chip{font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--accent)}
   .edit-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 16px;padding:10px 12px;background:var(--surface-alt);border:1px solid var(--line);border-radius:8px}
   .edit-nav-status{font-size:12px;color:var(--ink-soft);font-weight:700;text-align:center;flex:1}
   @media(max-width:850px){.edit-toolbar,.edit-results-layout{grid-template-columns:1fr}.edit-preview-grid{grid-template-columns:1fr}}
@@ -107,7 +111,7 @@
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.3.1</span></h1>
+        <h1>SELACV <span class="version-chip">V2.3.2</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -131,7 +135,7 @@
 <main>
 
 
-  <!-- ============ VUE 0 : TABLEAU DE BORD V2.3.1 ============ -->
+  <!-- ============ VUE 0 : TABLEAU DE BORD V2.3.2 ============ -->
   <section class="view active" id="view-dashboard">
     <div class="hero">
       <div class="hero-main">
@@ -903,7 +907,39 @@ function previewEditRecord(id){
   if([...results.options].some(o=>o.value===String(r.id))) results.value=String(r.id);
   const preview=document.getElementById("editPreview");
   preview.className="edit-preview";
-  preview.innerHTML=`<div class="edit-preview-head"><div><div class="edit-preview-title">${escapeHtml(r.NumBC||"Commande sans N° BC")}</div><small>${escapeHtml(r.Objet||"Objet non renseigné")}</small></div>${badge(r.EtatCommande)}</div><div class="edit-preview-grid"><div><span>Fournisseur</span><strong>${escapeHtml(r.Fournisseur||"—")}</strong></div><div><span>Montant TTC</span><strong>${fmtEUR(r.MontantTTC)}</strong></div><div><span>Date</span><strong>${r.Date||"—"}</strong></div><div><span>Secteur</span><strong>${escapeHtml(r.Secteur||"—")}</strong></div><div><span>Catégorie</span><strong>${escapeHtml(r.Categorie||"—")}</strong></div><div><span>Type</span><strong>${escapeHtml(r.Type||"—")}</strong></div></div>`;
+  const marcheValue=String(r.Marches||"").trim();
+  const validationValue=String(r.Validation||"").trim();
+  const postesValue=String(r.PostesManquants||"").trim();
+  const motivationValue=String(r.Motivations||"").trim();
+  preview.innerHTML=`
+    <div class="edit-preview-head">
+      <div>
+        <div class="edit-preview-title">${escapeHtml(r.NumBC||"Commande sans N° BC")}</div>
+        <small>${escapeHtml(r.Objet||"Objet non renseigné")}</small>
+      </div>
+      ${badge(r.EtatCommande)}
+    </div>
+    <div class="edit-preview-grid">
+      <div><span>Date</span><strong>${escapeHtml(r.Date||"—")}</strong></div>
+      <div><span>Montant TTC</span><strong>${fmtEUR(r.MontantTTC)}</strong></div>
+      <div><span>Fournisseur</span><strong>${escapeHtml(r.Fournisseur||"—")}</strong></div>
+      <div><span>Centrale d'achat</span><strong>${escapeHtml(r.CentraleAchat||"—")}</strong></div>
+      <div><span>Centre de coût</span><strong>${escapeHtml(r.CentreCout||"—")}</strong></div>
+      <div><span>Secteur</span><strong>${escapeHtml(r.Secteur||"—")}</strong></div>
+      <div><span>Bâtiment</span><strong>${escapeHtml(r.Batiment||"—")}</strong></div>
+      <div><span>Équipe</span><strong>${escapeHtml(r.Equipe||"—")}</strong></div>
+      <div><span>Catégorie</span><strong>${escapeHtml(r.Categorie||"—")}</strong></div>
+      <div><span>Type de budget</span><strong>${escapeHtml(r.Type||"—")}</strong></div>
+      <div><span>Marché</span><strong>${escapeHtml(marcheValue||"—")}</strong></div>
+      <div><span>Validation</span><strong>${escapeHtml(validationValue||"—")}</strong></div>
+      <div class="preview-wide"><span>Motivation d'achat</span><strong>${escapeHtml(motivationValue||"—")}</strong></div>
+      <div class="preview-wide ${postesValue?"preview-alert":""}"><span>Postes manquants</span><strong>${escapeHtml(postesValue||"Aucun poste manquant signalé")}</strong></div>
+    </div>
+    <div class="edit-preview-meta">
+      <span class="edit-preview-chip">${escapeHtml(r.EtatCommande||"État non renseigné")}</span>
+      <span class="edit-preview-chip">${escapeHtml(r.Type||"Type non renseigné")}</span>
+      <span class="edit-preview-chip">${escapeHtml(r.Categorie||"Catégorie non renseignée")}</span>
+    </div>`;
   document.getElementById("btnOpenEdit").disabled=false;
 }
 function clearEditPreview(){
