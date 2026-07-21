@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.1 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -72,6 +72,17 @@
   .modal-backdrop{position:fixed;inset:0;background:rgba(34,53,111,.38);display:none;align-items:center;justify-content:center;z-index:1000}.modal-backdrop.open{display:flex}.modal{background:#fff;border-radius:12px;padding:22px 24px;width:520px;max-width:92vw;max-height:86vh;overflow:auto;border:1px solid var(--line);box-shadow:0 10px 28px rgba(0,0,0,.18)}.modal h2{margin-bottom:4px}.budget-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.budget-config-grid .field label{font-size:11.5px}.top-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px}.footnote{color:var(--ink-soft);font-size:11.5px;margin-top:6px}
 
   .version-chip{display:inline-flex;vertical-align:middle;margin-left:6px;padding:3px 7px;border-radius:999px;background:var(--accent);color:#fff;font-size:10px;letter-spacing:.08em}
+  .edit-toolbar{display:grid;grid-template-columns:minmax(220px,2fr) minmax(160px,1fr) minmax(160px,1fr) minmax(150px,.8fr);gap:12px;align-items:end;margin:18px 0 12px}
+  .edit-results-layout{display:grid;grid-template-columns:minmax(260px,1.15fr) minmax(280px,.85fr);gap:14px;margin-bottom:16px}
+  .edit-preview{border:1px solid var(--line);border-radius:9px;background:#f7f9ff;padding:14px 16px;min-height:132px}
+  .edit-preview.empty{display:flex;align-items:center;justify-content:center;color:var(--ink-soft);text-align:center}
+  .edit-preview-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+  .edit-preview-title{font-size:15px;font-weight:700;color:var(--accent)}
+  .edit-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px;font-size:12.5px}
+  .edit-preview-grid span{color:var(--ink-soft)} .edit-preview-grid strong{display:block;color:var(--ink);margin-top:1px;overflow-wrap:anywhere}
+  .edit-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 16px;padding:10px 12px;background:var(--surface-alt);border:1px solid var(--line);border-radius:8px}
+  .edit-nav-status{font-size:12px;color:var(--ink-soft);font-weight:700;text-align:center;flex:1}
+  @media(max-width:850px){.edit-toolbar,.edit-results-layout{grid-template-columns:1fr}.edit-preview-grid{grid-template-columns:1fr}}
   .hero{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.75fr);gap:18px;margin-bottom:18px}
   .hero-main{background:linear-gradient(135deg,var(--accent),#344f98);color:#fff;border-radius:14px;padding:24px;box-shadow:0 8px 24px rgba(34,53,111,.18);position:relative;overflow:hidden}
   .hero-main:after{content:"";position:absolute;width:220px;height:220px;border:40px solid rgba(255,255,255,.07);border-radius:50%;right:-70px;top:-90px}
@@ -95,7 +106,7 @@
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2</span></h1>
+        <h1>SELACV <span class="version-chip">V2.1</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -282,34 +293,50 @@
     <div class="panel">
       <h2>Modifier une commande</h2>
       <div class="desc">Sélectionnez une commande, corrigez les informations nécessaires puis enregistrez les modifications directement dans Grist.</div>
-      <div class="form-grid" style="margin:18px 0; align-items:end;">
-        <div class="field span2">
-          <label>1. Sélection dans la liste complète</label>
+      <div class="edit-toolbar">
+        <div class="field">
+          <label>Liste complète</label>
           <select id="edit_record_select"><option value="">— Sélectionner une commande —</option></select>
         </div>
         <div class="field">
-          <label>2. Rechercher par N° de bon de commande</label>
+          <label>Recherche instantanée N° BC</label>
           <input type="text" id="edit_search_bc" placeholder="Ex. BC-2026-00125">
         </div>
         <div class="field">
-          <label>3. Rechercher par fournisseur</label>
+          <label>Recherche instantanée fournisseur</label>
           <input type="text" id="edit_search_supplier" list="dl_fournisseurs" placeholder="Nom du fournisseur">
         </div>
-        <div class="field span2">
-          <label>Résultats de la recherche</label>
-          <select id="edit_search_results" disabled><option value="">— Saisissez un numéro ou un fournisseur —</option></select>
-        </div>
-        <div class="field" style="align-self:end;">
-          <button type="button" class="btn btn-primary" id="btnEditSearch">Rechercher</button>
-        </div>
-        <div class="field" style="align-self:end;">
-          <button type="button" class="btn btn-ghost" id="btnEditSearchClear">Effacer la recherche</button>
+        <div class="field">
+          <label>Trier les résultats</label>
+          <select id="edit_sort">
+            <option value="date_desc">Date : plus récente</option>
+            <option value="date_asc">Date : plus ancienne</option>
+            <option value="supplier_asc">Fournisseur : A → Z</option>
+            <option value="bc_asc">N° BC : A → Z</option>
+            <option value="amount_desc">Montant : décroissant</option>
+          </select>
         </div>
       </div>
-      <div id="editSearchInfo" class="desc" style="margin:-6px 0 14px;">Vous pouvez utiliser l’un des trois modes de sélection.</div>
+      <div class="edit-results-layout">
+        <div class="field">
+          <label>Résultats</label>
+          <select id="edit_search_results" size="6"><option value="">— Toutes les commandes —</option></select>
+          <div id="editSearchInfo" class="desc" style="margin:7px 0 0;">La recherche se met à jour pendant la saisie.</div>
+        </div>
+        <div id="editPreview" class="edit-preview empty">Sélectionnez une commande pour afficher son aperçu avant modification.</div>
+      </div>
+      <div class="form-actions" style="margin-top:0; margin-bottom:14px;">
+        <button type="button" class="btn btn-ghost" id="btnEditSearchClear">Réinitialiser</button>
+        <button type="button" class="btn btn-primary" id="btnOpenEdit" disabled>Ouvrir la commande</button>
+      </div>
       <div id="editEmpty" class="empty-state">Choisissez une commande dans la liste ou lancez une recherche pour afficher son contenu.</div>
       <form id="formModifier" style="display:none;">
         <input type="hidden" id="edit_id">
+        <div class="edit-nav">
+          <button type="button" class="btn btn-ghost btn-sm" id="btnEditPrev">← Précédente</button>
+          <div class="edit-nav-status" id="editNavStatus">Commande sélectionnée</div>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnEditNext">Suivante →</button>
+        </div>
         <div class="field" style="margin-bottom:14px; max-width:320px;">
           <label>Type de budget</label>
           <div class="type-toggle" id="editTypeToggle">
@@ -725,92 +752,119 @@ function etatSelect(r){
 }
 
 /* ================= MODIFICATION ================= */
+let editMatches=[];
+let editPreviewId=null;
+
+function sortEditRecords(list){
+  const mode=document.getElementById("edit_sort").value;
+  const copy=[...list];
+  const text=(v)=>String(v||"").localeCompare;
+  if(mode==="date_asc") return copy.sort((a,b)=>(a.Date||"").localeCompare(b.Date||"") || (a.id||0)-(b.id||0));
+  if(mode==="supplier_asc") return copy.sort((a,b)=>String(a.Fournisseur||"").localeCompare(String(b.Fournisseur||""),"fr",{sensitivity:"base"}) || (b.Date||"").localeCompare(a.Date||""));
+  if(mode==="bc_asc") return copy.sort((a,b)=>String(a.NumBC||"").localeCompare(String(b.NumBC||""),"fr",{numeric:true,sensitivity:"base"}));
+  if(mode==="amount_desc") return copy.sort((a,b)=>(Number(b.MontantTTC)||0)-(Number(a.MontantTTC)||0));
+  return copy.sort((a,b)=>(b.Date||"").localeCompare(a.Date||"") || (b.id||0)-(a.id||0));
+}
 function renderEditOptions(){
-  const sel = document.getElementById("edit_record_select");
-  const current = sel.value;
-  const sorted = [...records].sort((a,b)=>(b.Date||"").localeCompare(a.Date||"") || (b.id||0)-(a.id||0));
-  sel.innerHTML = `<option value="">— Sélectionner une commande —</option>` + sorted.map(r=>
-    `<option value="${r.id}">${escapeHtml(editOptionLabel(r))}</option>`
-  ).join("");
-  if (sorted.some(r=>String(r.id)===String(current))) sel.value=current;
+  const sel=document.getElementById("edit_record_select");
+  const current=sel.value;
+  const sorted=sortEditRecords(records);
+  sel.innerHTML=`<option value="">— Sélectionner une commande —</option>`+sorted.map(r=>`<option value="${r.id}">${escapeHtml(editOptionLabel(r))}</option>`).join("");
+  if(sorted.some(r=>String(r.id)===String(current))) sel.value=current;
+  refreshEditResults();
 }
-function loadEditRecord(id){
-  const r = records.find(x=>String(x.id)===String(id));
-  const form=document.getElementById("formModifier"), empty=document.getElementById("editEmpty");
-  if(!r){ form.style.display="none"; empty.style.display="block"; return; }
-  empty.style.display="none"; form.style.display="block";
-  document.getElementById("edit_id").value=r.id;
-  selectedEditType=r.Type||"Fonctionnement";
-  document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on", b.dataset.type===selectedEditType));
-  const values={e_site:r.Site,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
-  Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el) el.value=v??"";});
-}
-document.querySelectorAll("#editTypeToggle button").forEach(btn=>btn.addEventListener("click",()=>{
-  document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.remove("on"));
-  btn.classList.add("on"); selectedEditType=btn.dataset.type;
-}));
 function editOptionLabel(r){
-  const bc = r.NumBC ? `BC ${r.NumBC}` : "Sans N° BC";
-  return `${bc} · ${r.Date||"Sans date"} · ${r.Site||"Sans site"} · ${r.Fournisseur||"Sans fournisseur"} · ${r.Objet||"Sans objet"} · ${fmtEUR(r.MontantTTC)}`;
+  const bc=r.NumBC ? `BC ${r.NumBC}` : "Sans N° BC";
+  return `${bc} · ${r.Date||"Sans date"} · ${r.Fournisseur||"Sans fournisseur"} · ${r.Objet||"Sans objet"} · ${fmtEUR(r.MontantTTC)}`;
 }
-function selectEditRecord(id){
-  if(!id) return loadEditRecord("");
-  document.getElementById("edit_record_select").value=String(id);
-  const results=document.getElementById("edit_search_results");
-  if([...results.options].some(o=>o.value===String(id))) results.value=String(id);
-  loadEditRecord(id);
-}
-function runEditSearch(){
+function refreshEditResults(){
   const bc=document.getElementById("edit_search_bc").value.trim().toLowerCase();
   const supplier=document.getElementById("edit_search_supplier").value.trim().toLowerCase();
+  editMatches=sortEditRecords(records.filter(r=>(!bc||String(r.NumBC||"").toLowerCase().includes(bc))&&(!supplier||String(r.Fournisseur||"").toLowerCase().includes(supplier))));
   const results=document.getElementById("edit_search_results");
-  const info=document.getElementById("editSearchInfo");
-  if(!bc && !supplier){
-    results.disabled=true;
-    results.innerHTML='<option value="">— Saisissez un numéro ou un fournisseur —</option>';
-    info.textContent="Saisissez au moins un numéro de bon de commande ou un fournisseur.";
-    return;
-  }
-  const matches=records.filter(r=>{
-    const bcOk=!bc || String(r.NumBC||"").toLowerCase().includes(bc);
-    const supplierOk=!supplier || String(r.Fournisseur||"").toLowerCase().includes(supplier);
-    return bcOk && supplierOk;
-  }).sort((a,b)=>(b.Date||"").localeCompare(a.Date||"") || (b.id||0)-(a.id||0));
-  results.disabled=matches.length===0;
-  results.innerHTML=matches.length
-    ? '<option value="">— Sélectionner parmi les résultats —</option>'+matches.map(r=>`<option value="${r.id}">${escapeHtml(editOptionLabel(r))}</option>`).join("")
-    : '<option value="">Aucune commande trouvée</option>';
-  info.textContent=matches.length===0 ? "Aucune commande ne correspond à cette recherche." : `${matches.length} commande${matches.length>1?"s":""} trouvée${matches.length>1?"s":""}.`;
-  if(matches.length===1) selectEditRecord(matches[0].id);
+  results.innerHTML=editMatches.length?editMatches.map(r=>`<option value="${r.id}">${escapeHtml(editOptionLabel(r))}</option>`).join(""):'<option value="">Aucune commande trouvée</option>';
+  document.getElementById("editSearchInfo").textContent=`${editMatches.length} commande${editMatches.length>1?"s":""} trouvée${editMatches.length>1?"s":""}. La recherche est instantanée.`;
+  if(editPreviewId && editMatches.some(r=>String(r.id)===String(editPreviewId))){results.value=String(editPreviewId);}else{clearEditPreview();}
 }
+function previewEditRecord(id){
+  const r=records.find(x=>String(x.id)===String(id));
+  if(!r) return clearEditPreview();
+  editPreviewId=r.id;
+  document.getElementById("edit_record_select").value=String(r.id);
+  const results=document.getElementById("edit_search_results");
+  if([...results.options].some(o=>o.value===String(r.id))) results.value=String(r.id);
+  const preview=document.getElementById("editPreview");
+  preview.className="edit-preview";
+  preview.innerHTML=`<div class="edit-preview-head"><div><div class="edit-preview-title">${escapeHtml(r.NumBC||"Commande sans N° BC")}</div><small>${escapeHtml(r.Objet||"Objet non renseigné")}</small></div>${badge(r.EtatCommande)}</div><div class="edit-preview-grid"><div><span>Fournisseur</span><strong>${escapeHtml(r.Fournisseur||"—")}</strong></div><div><span>Montant TTC</span><strong>${fmtEUR(r.MontantTTC)}</strong></div><div><span>Date</span><strong>${r.Date||"—"}</strong></div><div><span>Site</span><strong>${escapeHtml(r.Site||"—")}</strong></div><div><span>Catégorie</span><strong>${escapeHtml(r.Categorie||"—")}</strong></div><div><span>Type</span><strong>${escapeHtml(r.Type||"—")}</strong></div></div>`;
+  document.getElementById("btnOpenEdit").disabled=false;
+}
+function clearEditPreview(){
+  editPreviewId=null;
+  const preview=document.getElementById("editPreview");
+  preview.className="edit-preview empty";
+  preview.textContent="Sélectionnez une commande pour afficher son aperçu avant modification.";
+  document.getElementById("btnOpenEdit").disabled=true;
+}
+function loadEditRecord(id){
+  const r=records.find(x=>String(x.id)===String(id));
+  const form=document.getElementById("formModifier"),empty=document.getElementById("editEmpty");
+  if(!r){form.style.display="none";empty.style.display="block";return;}
+  empty.style.display="none";form.style.display="block";
+  document.getElementById("edit_id").value=r.id;
+  selectedEditType=r.Type||"Fonctionnement";
+  document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on",b.dataset.type===selectedEditType));
+  const values={e_site:r.Site,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
+  Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??"";});
+  updateEditNavigation(r.id);
+  form.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function updateEditNavigation(id){
+  const list=editMatches.length?editMatches:sortEditRecords(records);
+  const idx=list.findIndex(r=>String(r.id)===String(id));
+  document.getElementById("editNavStatus").textContent=idx>=0?`Commande ${idx+1} sur ${list.length}`:"Commande sélectionnée";
+  document.getElementById("btnEditPrev").disabled=idx<=0;
+  document.getElementById("btnEditNext").disabled=idx<0||idx>=list.length-1;
+}
+function navigateEdit(delta){
+  const id=document.getElementById("edit_id").value;
+  const list=editMatches.length?editMatches:sortEditRecords(records);
+  const idx=list.findIndex(r=>String(r.id)===String(id));
+  const target=list[idx+delta];
+  if(target){previewEditRecord(target.id);loadEditRecord(target.id);}
+}
+document.querySelectorAll("#editTypeToggle button").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.remove("on"));btn.classList.add("on");selectedEditType=btn.dataset.type;}));
 function clearEditSearch(){
   document.getElementById("edit_search_bc").value="";
   document.getElementById("edit_search_supplier").value="";
-  const results=document.getElementById("edit_search_results");
-  results.disabled=true;
-  results.innerHTML='<option value="">— Saisissez un numéro ou un fournisseur —</option>';
-  document.getElementById("editSearchInfo").textContent="Vous pouvez utiliser l’un des trois modes de sélection.";
+  document.getElementById("edit_sort").value="date_desc";
+  document.getElementById("edit_record_select").value="";
+  document.getElementById("formModifier").style.display="none";
+  document.getElementById("editEmpty").style.display="block";
+  clearEditPreview();refreshEditResults();
 }
-document.getElementById("edit_record_select").addEventListener("change",e=>selectEditRecord(e.target.value));
-document.getElementById("edit_search_results").addEventListener("change",e=>selectEditRecord(e.target.value));
-document.getElementById("btnEditSearch").addEventListener("click",runEditSearch);
+document.getElementById("edit_record_select").addEventListener("change",e=>previewEditRecord(e.target.value));
+document.getElementById("edit_search_results").addEventListener("change",e=>previewEditRecord(e.target.value));
+document.getElementById("edit_search_results").addEventListener("dblclick",()=>{if(editPreviewId)loadEditRecord(editPreviewId);});
+["edit_search_bc","edit_search_supplier"].forEach(id=>document.getElementById(id).addEventListener("input",refreshEditResults));
+document.getElementById("edit_sort").addEventListener("change",()=>{renderEditOptions();});
 document.getElementById("btnEditSearchClear").addEventListener("click",clearEditSearch);
-document.getElementById("edit_search_bc").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();runEditSearch();}});
-document.getElementById("edit_search_supplier").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();runEditSearch();}});
-document.getElementById("btnCancelEdit").addEventListener("click",()=>{
-  document.getElementById("edit_record_select").value=""; clearEditSearch(); loadEditRecord("");
-});
+document.getElementById("btnOpenEdit").addEventListener("click",()=>{if(editPreviewId)loadEditRecord(editPreviewId);});
+document.getElementById("btnEditPrev").addEventListener("click",()=>navigateEdit(-1));
+document.getElementById("btnEditNext").addEventListener("click",()=>navigateEdit(1));
+document.getElementById("btnCancelEdit").addEventListener("click",clearEditSearch);
 document.getElementById("formModifier").addEventListener("submit",async e=>{
-  e.preventDefault(); const btn=document.getElementById("btnSaveEdit"); btn.disabled=true;
+  e.preventDefault();const btn=document.getElementById("btnSaveEdit");btn.disabled=true;
   try{
     const id=Number(document.getElementById("edit_id").value);
     const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Site:document.getElementById("e_site").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value,PostesManquants:document.getElementById("e_postes").value};
-    await updateRecord(id,fields); toast("Commande modifiée ✓");
+    await updateRecord(id,fields);toast("Commande modifiée ✓");
   }catch(err){console.error(err);toast("Erreur lors de la modification : "+(err.message||err),true);}finally{btn.disabled=false;}
 });
 function openEditRecord(id){
   goToView("modifier");
-  selectEditRecord(id);
+  refreshEditResults();
+  previewEditRecord(id);
+  loadEditRecord(id);
 }
 
 /* ================= CONSULTATION ================= */
@@ -1014,7 +1068,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2_1_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
