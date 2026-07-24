@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.11 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.12 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.11</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.12</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -304,6 +304,14 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
             </select>
           </div>
           <div class="field">
+            <label>Code Nacre</label>
+            <select id="f_code_nacre"><option value="">Choix du code Nacre</option></select>
+          </div>
+          <div class="field">
+            <label>Intitulé Nacre</label>
+            <input id="f_intitule_nacre" type="text" readonly placeholder="Intitulé associé au code">
+          </div>
+          <div class="field">
             <label>Marché</label>
             <select id="f_marches">
               <option value="">Choix du marché</option>
@@ -432,6 +440,8 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
           <div class="field"><label>Fournisseur</label><input type="text" id="e_fournisseur" list="dl_fournisseurs" required></div>
           <div class="field"><label>Centrale d'achat</label><input type="text" id="e_centrale" list="dl_centrales"></div>
           <div class="field"><label>Catégorie</label><input type="text" id="e_categorie" list="dl_categories" required></div>
+          <div class="field"><label>Code Nacre</label><select id="e_code_nacre"><option value="">Choix du code Nacre</option></select></div>
+          <div class="field"><label>Intitulé Nacre</label><input id="e_intitule_nacre" type="text" readonly></div>
           <div class="field"><label>Marché</label><select id="e_marches"><option value="">—</option><option value="oui">oui</option><option value="non">non</option></select></div>
           <div class="field span2"><label>Objet de la commande</label><input type="text" id="e_objet" required></div>
           <div class="field span2"><label>Motivations d'achat</label><textarea id="e_motivations"></textarea></div>
@@ -548,6 +558,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.12</div>
+          <div><h3>Intégration des codes Nacre</h3><ul><li>Ajout du choix du code Nacre dans la création et la modification des commandes.</li><li>Affichage automatique de l’intitulé correspondant.</li><li>Lecture du référentiel depuis la table T02_Nacres.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.11</div>
           <div><h3>Référentiel T01_Fournisseurs</h3><ul><li>Utilisation de la table T01_Fournisseurs comme source du référentiel.</li><li>Conservation de la colonne FOURNISSEURS et de la gestion ajout / modification.</li></ul></div>
         </article>
@@ -639,7 +653,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.11</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.12</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -697,6 +711,8 @@ const COLUMN_DEFS = [
   {name:"Fournisseur", title:"Fournisseur"},
   {name:"CentraleAchat", title:"Centrale d'achat", optional:true},
   {name:"Categorie", title:"Catégorie"},
+  {name:"CodeNacre", title:"Code Nacre", optional:true},
+  {name:"IntituleNacre", title:"Intitulé Nacre", optional:true},
   {name:"Objet", title:"Objet de la commande"},
   {name:"Marches", title:"Marchés", optional:true},
   {name:"Motivations", title:"Motivations d'achats", optional:true},
@@ -727,6 +743,9 @@ let supplierDirectory = []; // référentiel de la table FOURNISSEURS
 let supplierRows = [];
 let supplierColumnId = "FOURNISSEURS";
 let supplierTableId = "T01_Fournisseurs";
+let nacreRows = [];
+let nacreCodeColumn = "Code Nacre";
+let nacreTitleColumn = "Intitulés Nacre";
 
 /* ================= GRIST WIRING ================= */
 function isGristAvailable(){ return typeof grist !== "undefined"; }
@@ -738,6 +757,7 @@ if (isGristAvailable()) {
     mappings = maps || {};
     await loadGristChoiceOptions();
     await loadSupplierDirectory();
+    await loadNacreDirectory();
     const mappedRecords = grist.mapColumnNames(recs, maps);
     if (!mappedRecords) {
       records = [];
@@ -786,6 +806,8 @@ function normalizeRecord(r){
     Fournisseur: r.Fournisseur || "",
     CentraleAchat: r.CentraleAchat || "",
     Categorie: r.Categorie || "",
+    CodeNacre: r.CodeNacre || "",
+    IntituleNacre: r.IntituleNacre || "",
     Objet: r.Objet || "",
     Marches: r.Marches || "",
     Motivations: r.Motivations || "",
@@ -898,6 +920,46 @@ function renderSuppliers(){
     document.getElementById("supplierName").focus();
   }));
 }
+
+async function loadNacreDirectory(){
+  nacreRows=[];
+  if(!isGristAvailable() || !grist.docApi) return;
+  try{
+    let data;
+    try{ data=await grist.docApi.fetchTable("T02_Nacres"); }
+    catch(_){
+      const catalog=await grist.docApi.fetchTable("_grist_Tables");
+      const rows=Array.isArray(catalog)?catalog:tableDataToRows(catalog);
+      const match=rows.find(row=>[row.tableId,row.tableName,row.name,row.displayName].some(v=>String(v||"").trim().toUpperCase()==="T02_NACRES"));
+      if(!match) throw new Error("Table T02_Nacres introuvable.");
+      data=await grist.docApi.fetchTable(String(match.tableId||match.tableName||match.name));
+    }
+    const rows=Array.isArray(data)?data:tableDataToRows(data);
+    const keys=rows.length?Object.keys(rows[0]).filter(k=>k!=="id"):[];
+    nacreCodeColumn=keys.find(k=>/code\s*nacre/i.test(k))||keys[0]||"Code Nacre";
+    nacreTitleColumn=keys.find(k=>/intitul/i.test(k))||keys[1]||"Intitulés Nacre";
+    nacreRows=rows.filter(r=>String(r[nacreCodeColumn]??"").trim()).map(r=>({code:String(r[nacreCodeColumn]??"").trim(),title:String(r[nacreTitleColumn]??"").trim()}));
+    renderNacreChoices();
+  }catch(err){ console.warn("Lecture du référentiel T02_Nacres impossible.",err); }
+}
+
+function renderNacreChoices(){
+  ["f_code_nacre","e_code_nacre"].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const current=el.value;
+    el.innerHTML='<option value="">Choix du code Nacre</option>'+nacreRows.map(n=>`<option value="${escapeHtml(n.code)}">${escapeHtml(n.code)} — ${escapeHtml(n.title)}</option>`).join("");
+    if(current) el.value=current;
+  });
+  updateNacreTitle("f_code_nacre","f_intitule_nacre");
+  updateNacreTitle("e_code_nacre","e_intitule_nacre");
+}
+function updateNacreTitle(codeId,titleId){
+  const code=document.getElementById(codeId), title=document.getElementById(titleId); if(!code||!title) return;
+  const row=nacreRows.find(n=>n.code===code.value);
+  title.value=row?.title||"";
+}
+document.getElementById("f_code_nacre").addEventListener("change",()=>updateNacreTitle("f_code_nacre","f_intitule_nacre"));
+document.getElementById("e_code_nacre").addEventListener("change",()=>updateNacreTitle("e_code_nacre","e_intitule_nacre"));
 
 function resetSupplierForm(){
   document.getElementById("formFournisseur")?.reset();
@@ -1128,6 +1190,8 @@ document.getElementById("formSaisie").addEventListener("submit", async (e)=>{
       Fournisseur: document.getElementById("f_fournisseur").value,
       CentraleAchat: document.getElementById("f_centrale").value,
       Categorie: document.getElementById("f_categorie").value,
+      CodeNacre: document.getElementById("f_code_nacre").value,
+      IntituleNacre: document.getElementById("f_intitule_nacre").value,
       Objet: document.getElementById("f_objet").value,
       Marches: document.getElementById("f_marches").value,
       Motivations: document.getElementById("f_motivations").value,
@@ -1255,6 +1319,8 @@ function previewEditRecord(id){
       <div><span>Bâtiment</span><strong>${escapeHtml(r.Batiment||"—")}</strong></div>
       <div><span>Équipe</span><strong>${escapeHtml(r.Equipe||"—")}</strong></div>
       <div><span>Catégorie</span><strong>${escapeHtml(r.Categorie||"—")}</strong></div>
+      <div><span>Code Nacre</span><strong>${escapeHtml(r.CodeNacre||"—")}</strong></div>
+      <div><span>Intitulé Nacre</span><strong>${escapeHtml(r.IntituleNacre||"—")}</strong></div>
       <div><span>Type de budget</span><strong>${escapeHtml(r.Type||"—")}</strong></div>
       <div><span>Marché</span><strong>${escapeHtml(marcheValue||"—")}</strong></div>
       <div><span>Validation</span><strong>${escapeHtml(validationValue||"—")}</strong></div>
@@ -1284,8 +1350,10 @@ function loadEditRecord(id){
   selectedEditType=r.Type||"Fonctionnement";
   document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on",b.dataset.type===selectedEditType));
   fillSelect("e_secteur", combinedChoices("Secteur", [...SECTEURS, ...records.map(x=>x.Secteur)]), "Choix du secteur", r.Secteur, false);
-  const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_commentaires:r.Commentaires,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande};
+  renderNacreChoices();
+  const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_code_nacre:r.CodeNacre,e_intitule_nacre:r.IntituleNacre,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_commentaires:r.Commentaires,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande};
   Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??"";});
+  updateNacreTitle("e_code_nacre","e_intitule_nacre");
   updateEditNavigation(r.id);
   form.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1327,7 +1395,7 @@ document.getElementById("formModifier").addEventListener("submit",async e=>{
   e.preventDefault();const btn=document.getElementById("btnSaveEdit");btn.disabled=true;
   try{
     const id=Number(document.getElementById("edit_id").value);
-    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Secteur:document.getElementById("e_secteur").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,Commentaires:document.getElementById("e_commentaires").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value};
+    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Secteur:document.getElementById("e_secteur").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,CodeNacre:document.getElementById("e_code_nacre").value,IntituleNacre:document.getElementById("e_intitule_nacre").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,Commentaires:document.getElementById("e_commentaires").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value};
     await updateRecord(id,fields);toast("Commande modifiée ✓");
   }catch(err){console.error(err);toast("Erreur lors de la modification : "+(err.message||err),true);}finally{btn.disabled=false;}
 });
@@ -1615,7 +1683,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.11_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.12_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1866,6 +1934,7 @@ function renderAll(){
   renderRecentEntries();
   renderDatalists();
   renderSuppliers();
+  renderNacreChoices();
   renderEditOptions();
   renderBudgetCards();
   renderConsultTable();
@@ -1875,6 +1944,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.11 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.12 — 24/07/2026</footer>
 </body>
 </html>
