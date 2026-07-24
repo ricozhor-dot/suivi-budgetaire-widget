@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.4 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.5 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.4</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.5</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -224,7 +224,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         </div>
         <div class="panel">
           <h2>Commandes à traiter</h2>
-          <div class="desc">Commandes en attente, partielles ou avec postes manquants.</div>
+          <div class="desc">Commandes en attente, partielles ou retournées.</div>
           <div class="mini-list" id="dashboardPending"></div>
         </div>
       </div>
@@ -340,10 +340,6 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
               <option value="Retour">Retour</option>
             </select>
           </div>
-          <div class="field">
-            <label>Poste manquant</label>
-            <input type="text" id="f_postes">
-          </div>
         </div>
 
         <datalist id="dl_fournisseurs"></datalist>
@@ -442,7 +438,6 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
           <div class="field"><label>Montant TTC (€)</label><input type="number" step="0.01" min="0" id="e_montant" required></div>
           <div class="field"><label>Validation (agent)</label><input type="text" id="e_validation"></div>
           <div class="field"><label>État commande</label><select id="e_etat"><option>Attente</option><option>Livrée</option><option>Partielle</option><option>Annulée</option><option>Retour</option></select></div>
-          <div class="field"><label>Postes manquants</label><input type="text" id="e_postes"></div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-ghost" id="btnCancelEdit">Annuler</button>
@@ -528,6 +523,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.5</div>
+          <div><h3>Suppression des postes manquants</h3><ul><li>Retrait du champ dans la création, l’ouverture et la modification des commandes.</li><li>Suppression de la colonne dans le mapping du widget, ainsi que des indicateurs, graphiques et alertes associés.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.4</div>
           <div><h3>Commentaires sur les commandes</h3><ul><li>Ajout du champ Commentaires lors de la création d’une commande.</li><li>Affichage des commentaires dans l’aperçu d’ouverture et dans la fiche de modification.</li><li>Enregistrement des commentaires lors de la modification, avec prise en charge dans la recherche et l’export CSV.</li></ul></div>
         </article>
@@ -553,11 +552,11 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         </article>
         <article class="version-entry">
           <div class="version-number">V2.3.3</div>
-          <div><h3>Analyses enrichies</h3><ul><li>Ajout de l’engagé par centre de coût, du statut des validations et de la qualité des dossiers.</li><li>Ajout d’indicateurs sur les validations à traiter, les postes manquants, la plus grosse commande et les fournisseurs actifs.</li><li>Correction du graphique des états pour compter les commandes.</li></ul></div>
+          <div><h3>Analyses enrichies</h3><ul><li>Ajout de l’engagé par centre de coût, du statut des validations et de la qualité des dossiers.</li><li>Ajout d’indicateurs sur les validations à traiter, la plus grosse commande et les fournisseurs actifs.</li><li>Correction du graphique des états pour compter les commandes.</li></ul></div>
         </article>
         <article class="version-entry">
           <div class="version-number">V2.3.2</div>
-          <div><h3>Modification des commandes</h3><ul><li>Enrichissement de la vignette de gauche avec les informations détaillées de la commande.</li><li>Affichage du centre de coût, bâtiment, équipe, centrale d’achat, marché, validation, motivation et postes manquants.</li></ul></div>
+          <div><h3>Modification des commandes</h3><ul><li>Enrichissement de la vignette de gauche avec les informations détaillées de la commande.</li><li>Affichage du centre de coût, bâtiment, équipe, centrale d’achat, marché, validation et motivation.</li></ul></div>
         </article>
         <article class="version-entry">
           <div class="version-number">V2.3.1</div>
@@ -591,7 +590,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.4</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.5</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -657,7 +656,6 @@ const COLUMN_DEFS = [
   {name:"Validation", title:"Validation (agent)", optional:true},
   {name:"DateEnvoi", title:"Date d'envoi", type:"Date", optional:true},
   {name:"EtatCommande", title:"Etat commande"},
-  {name:"PostesManquants", title:"Postes manquants", optional:true},
 ];
 
 const DEFAULT_BUDGETS = {
@@ -742,7 +740,6 @@ function normalizeRecord(r){
     Validation: r.Validation || "",
     DateEnvoi: r.DateEnvoi ? toDateStr(r.DateEnvoi) : "",
     EtatCommande: r.EtatCommande || "Attente",
-    PostesManquants: r.PostesManquants || "",
   };
 }
 
@@ -1001,7 +998,6 @@ document.getElementById("formSaisie").addEventListener("submit", async (e)=>{
       MontantTTC: parseFloat(document.getElementById("f_montant").value) || 0,
       Validation: document.getElementById("f_validation").value,
       EtatCommande: document.getElementById("f_etat").value,
-      PostesManquants: document.getElementById("f_postes").value,
     };
     await addRecord(fields);
     toast("Commande ajoutée ✓");
@@ -1102,7 +1098,6 @@ function previewEditRecord(id){
   preview.className="edit-preview";
   const marcheValue=String(r.Marches||"").trim();
   const validationValue=String(r.Validation||"").trim();
-  const postesValue=String(r.PostesManquants||"").trim();
   const motivationValue=String(r.Motivations||"").trim();
   const commentairesValue=String(r.Commentaires||"").trim();
   preview.innerHTML=`
@@ -1128,7 +1123,6 @@ function previewEditRecord(id){
       <div><span>Validation</span><strong>${escapeHtml(validationValue||"—")}</strong></div>
       <div class="preview-wide"><span>Motivation d'achat</span><strong>${escapeHtml(motivationValue||"—")}</strong></div>
       <div class="preview-wide"><span>Commentaires</span><strong>${escapeHtml(commentairesValue||"Aucun commentaire")}</strong></div>
-      <div class="preview-wide ${postesValue?"preview-alert":""}"><span>Postes manquants</span><strong>${escapeHtml(postesValue||"Aucun poste manquant signalé")}</strong></div>
     </div>
     <div class="edit-preview-meta">
       <span class="edit-preview-chip">${escapeHtml(r.EtatCommande||"État non renseigné")}</span>
@@ -1153,7 +1147,7 @@ function loadEditRecord(id){
   selectedEditType=r.Type||"Fonctionnement";
   document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on",b.dataset.type===selectedEditType));
   fillSelect("e_secteur", combinedChoices("Secteur", [...SECTEURS, ...records.map(x=>x.Secteur)]), "Choix du secteur", r.Secteur, false);
-  const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_commentaires:r.Commentaires,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
+  const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_commentaires:r.Commentaires,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande};
   Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??"";});
   updateEditNavigation(r.id);
   form.scrollIntoView({behavior:"smooth",block:"start"});
@@ -1196,7 +1190,7 @@ document.getElementById("formModifier").addEventListener("submit",async e=>{
   e.preventDefault();const btn=document.getElementById("btnSaveEdit");btn.disabled=true;
   try{
     const id=Number(document.getElementById("edit_id").value);
-    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Secteur:document.getElementById("e_secteur").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,Commentaires:document.getElementById("e_commentaires").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value,PostesManquants:document.getElementById("e_postes").value};
+    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Secteur:document.getElementById("e_secteur").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,Commentaires:document.getElementById("e_commentaires").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value};
     await updateRecord(id,fields);toast("Commande modifiée ✓");
   }catch(err){console.error(err);toast("Erreur lors de la modification : "+(err.message||err),true);}finally{btn.disabled=false;}
 });
@@ -1483,7 +1477,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.4_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.5_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1499,7 +1493,6 @@ function renderKPIs(){
     const v=String(r.Validation||"").trim().toLowerCase();
     return !v || v.includes("attente") || v.includes("à valider") || v.includes("a valider");
   }).length;
-  const dossiersAvecManquants = records.filter(r=>String(r.PostesManquants||"").trim()).length;
 
   const kpis = [
     {label:"Engagé total", value: fmtEUR(totalEngaged)},
@@ -1509,7 +1502,6 @@ function renderKPIs(){
     {label:"Plus grosse commande", value: fmtEUR(maxCommande)},
     {label:"Fournisseurs actifs", value: fournisseursActifs},
     {label:"Validations à traiter", value: validationsEnAttente},
-    {label:"Dossiers avec manquants", value: dossiersAvecManquants},
   ];
   document.getElementById("kpiGrid").innerHTML = kpis.map(k=>`
     <div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div>
@@ -1592,12 +1584,11 @@ function renderCharts(){
   },{ plugins:{legend:{position:"right", labels:{boxWidth:11,font:{size:10.5}}}} });
 
   // Qualité / complétude des dossiers
-  const avecManquants = records.filter(r=>String(r.PostesManquants||"").trim()).length;
   const incomplets = records.filter(r=>![r.Date,r.NumBC,r.CentreCout,r.Fournisseur,r.Categorie].every(v=>String(v??"").trim()) || !(Number(r.MontantTTC)>0)).length;
   const complets = Math.max(0, records.length - incomplets);
   mkChart("chartCompleteness","doughnut",{
-    labels:["Dossiers complets","Dossiers incomplets","Avec postes manquants"],
-    datasets:[{data:[complets,incomplets,avecManquants], backgroundColor:["#8bc48f","#f2c952","#faacac"]}]
+    labels:["Dossiers complets","Dossiers incomplets"],
+    datasets:[{data:[complets,incomplets], backgroundColor:["#8bc48f","#f2c952"]}]
   },{ plugins:{legend:{position:"right", labels:{boxWidth:11,font:{size:10.5}}}} });
 }
 
@@ -1701,7 +1692,6 @@ function budgetTotals(){
 function renderDashboard(){
   const totals=budgetTotals();
   const pending=records.filter(r=>["Attente","Partielle","Retour"].includes(r.EtatCommande));
-  const missing=records.filter(r=>String(r.PostesManquants||"").trim());
   const kpis=[
     {label:"Budget initial",value:fmtEUR(totals.initial)},
     {label:"Crédits engagés",value:fmtEUR(totals.engaged)},
@@ -1725,7 +1715,6 @@ function renderDashboard(){
 
   const alerts=[];
   SECTEURS.forEach(secteur=>TYPES.forEach(type=>{const b=computeBudgetFor(secteur,type);if(b.init>0&&b.pct>=100)alerts.push({c:"danger",t:`Budget dépassé · ${secteur}`,d:`${type} : ${b.pct.toFixed(0)} % consommés.`});else if(b.init>0&&b.pct>=80)alerts.push({c:"warn",t:`Seuil de vigilance · ${secteur}`,d:`${type} : ${b.pct.toFixed(0)} % consommés.`});}));
-  if(missing.length) alerts.push({c:"warn",t:"Postes manquants",d:`${missing.length} commande(s) nécessecteurnt un complément.`});
   if(!alerts.length) alerts.push({c:"",t:"Aucune alerte majeure",d:"Les indicateurs disponibles ne signalent pas de dépassement."});
   document.getElementById("dashboardAlerts").innerHTML=alerts.slice(0,8).map(a=>`<div class="alert-item ${a.c}"><div class="alert-icon">${a.c==="danger"?"!":a.c==="warn"?"△":"✓"}</div><div class="alert-copy"><strong>${a.t}</strong><span>${a.d}</span></div></div>`).join("");
 
@@ -1747,6 +1736,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.4 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.5 — 24/07/2026</footer>
 </body>
 </html>
