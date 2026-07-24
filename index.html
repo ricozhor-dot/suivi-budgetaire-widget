@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.6 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.7 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.6</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.7</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -532,6 +532,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.7</div>
+          <div><h3>Référentiel fournisseurs centralisé</h3><ul><li>Les listes de fournisseurs sont désormais alimentées par la table Grist FOURNISSEURS.</li><li>Les fournisseurs déjà présents dans les commandes sont conservés comme valeurs de secours.</li><li>Aucun enregistrement existant n’est modifié ou supprimé.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.6</div>
           <div><h3>Correction de l’enregistrement des commentaires</h3><ul><li>La colonne Commentaires devient une association Grist obligatoire.</li><li>Un message explicite empêche désormais un enregistrement silencieux si la colonne n’est pas associée.</li><li>La création et la modification contrôlent la présence de la colonne avant l’écriture.</li></ul></div>
         </article>
@@ -603,7 +607,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.6</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.7</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -687,6 +691,7 @@ let selectedEditType = "Fonctionnement";
 let sortKey = "Date", sortDir = -1;
 let charts = {};
 let gristChoiceOptions = {}; // choix configurés dans les colonnes Grist
+let supplierDirectory = []; // référentiel de la table FOURNISSEURS
 
 /* ================= GRIST WIRING ================= */
 function isGristAvailable(){ return typeof grist !== "undefined"; }
@@ -697,6 +702,7 @@ if (isGristAvailable()) {
   grist.onRecords(async (recs, maps) => {
     mappings = maps || {};
     await loadGristChoiceOptions();
+    await loadSupplierDirectory();
     const mappedRecords = grist.mapColumnNames(recs, maps);
     if (!mappedRecords) {
       records = [];
@@ -813,6 +819,19 @@ async function loadGristChoiceOptions(){
   }
 }
 
+async function loadSupplierDirectory(){
+  supplierDirectory = [];
+  if (!isGristAvailable() || !grist.docApi) return;
+  try {
+    const data = await grist.docApi.fetchTable("FOURNISSEURS");
+    const rows = Array.isArray(data) ? data : tableDataToRows(data);
+    supplierDirectory = [...new Set(rows.map(row => String(row.FOURNISSEURS ?? "").trim()).filter(Boolean))]
+      .sort((a,b)=>a.localeCompare(b,"fr",{sensitivity:"base"}));
+  } catch (err) {
+    console.warn("Lecture de la table FOURNISSEURS impossible; conservation des fournisseurs des commandes.", err);
+  }
+}
+
 function normalizeChoiceValues(values){
   const flat=[];
   (values || []).forEach(value=>{
@@ -919,7 +938,11 @@ function setAdminState(unlocked){
   adminUnlocked = !!unlocked;
   const tab=document.getElementById("adminTab");
   const pill=document.getElementById("btnAdminAccess");
-  if(tab) tab.hidden=!adminUnlocked;
+  if(tab){
+    tab.hidden=!adminUnlocked;
+    tab.setAttribute("aria-hidden",adminUnlocked?"false":"true");
+    tab.tabIndex=adminUnlocked?0:-1;
+  }
   if(pill){pill.classList.toggle("connected",adminUnlocked);pill.textContent=adminUnlocked?"✓ Administrateur":"🔒 Administrateur";}
   sessionStorage.setItem("selacvAdminUnlocked",adminUnlocked?"1":"0");
   updateAdminPanel();
@@ -1390,7 +1413,8 @@ function badge(etat){
 function renderDatalists(){
   const valuesByField = {
     CentreCout: combinedChoices("CentreCout", records.map(r=>r.CentreCout)),
-    Fournisseur: combinedChoices("Fournisseur", records.map(r=>r.Fournisseur)),
+    Fournisseur: [...new Set([...supplierDirectory, ...records.map(r=>r.Fournisseur)].filter(Boolean))]
+      .sort((a,b)=>String(a).localeCompare(String(b),"fr",{sensitivity:"base"})),
     CentraleAchat: combinedChoices("CentraleAchat", records.map(r=>r.CentraleAchat)),
     Categorie: combinedChoices("Categorie", records.map(r=>r.Categorie)),
     Marches: combinedChoices("Marches", ["Oui","Non", ...records.map(r=>r.Marches)]),
@@ -1498,7 +1522,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.6_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.7_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1757,6 +1781,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.6 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.7 — 24/07/2026</footer>
 </body>
 </html>
