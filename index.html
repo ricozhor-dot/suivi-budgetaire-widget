@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.1 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -142,7 +142,7 @@
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.1</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -173,6 +173,7 @@
 
   <!-- ============ VUE 0 : TABLEAU DE BORD V2.4.2 ============ -->
   <section class="view active" id="view-dashboard">
+    <div class="dev-line" role="note" aria-label="Avertissement version en développement"><strong>⚠ Attention :</strong> version en développement. Merci de bien vouloir faire un <strong>CTRL + F5</strong> pour actualiser les versions.</div>
     <div class="hero">
       <div class="hero-main">
         <div class="hero-eyebrow">Pilotage budgétaire · Exercice en cours</div>
@@ -195,7 +196,6 @@
         <div class="health-line"><span>Données suivies</span><span class="health-value" id="dashCount">0 commande</span></div>
       </div>
     </div>
-    <div class="dev-line" role="note" aria-label="Avertissement version en développement"><strong>Attention :</strong> version en développement. Merci de bien vouloir faire un <strong>CTRL + F5</strong> pour actualiser les versions.</div>
     <div class="kpi-grid" id="dashboardKpis"></div>
     <div class="dashboard-grid">
       <div class="stack">
@@ -515,6 +515,10 @@
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.1</div>
+          <div><h3>Avertissement repositionné</h3><ul><li>Déplacement du bandeau de développement entre les onglets et les deux tuiles principales du tableau de bord.</li><li>Ajout du pictogramme triangle ⚠ avant la mention « Attention ».</li><li>Conservation du style violet foncé et italique existant.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5</div>
           <div><h3>Responsive desktop et administration</h3><ul><li>Optimisation responsive desktop first pour les résolutions 1280, 1366, 1600 et 1920 pixels.</li><li>Suppression des pastilles Direction, Agent, Suivi, Pilotage et Historique dans les onglets.</li><li>Ajout d’une pastille Administrateur en haut à droite et d’un onglet protégé par le mot de passe de session.</li><li>Ajout d’un espace d’administration avec état Grist, maintenance et informations techniques.</li></ul></div>
         </article>
@@ -570,7 +574,7 @@
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.1</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
