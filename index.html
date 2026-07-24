@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.5 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.6 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.5</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.6</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -523,6 +523,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.6</div>
+          <div><h3>Correction de l’enregistrement des commentaires</h3><ul><li>La colonne Commentaires devient une association Grist obligatoire.</li><li>Un message explicite empêche désormais un enregistrement silencieux si la colonne n’est pas associée.</li><li>La création et la modification contrôlent la présence de la colonne avant l’écriture.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.5</div>
           <div><h3>Suppression des postes manquants</h3><ul><li>Retrait du champ dans la création, l’ouverture et la modification des commandes.</li><li>Suppression de la colonne dans le mapping du widget, ainsi que des indicateurs, graphiques et alertes associés.</li></ul></div>
         </article>
@@ -590,7 +594,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.5</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.6</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -651,7 +655,7 @@ const COLUMN_DEFS = [
   {name:"Objet", title:"Objet de la commande"},
   {name:"Marches", title:"Marchés", optional:true},
   {name:"Motivations", title:"Motivations d'achats", optional:true},
-  {name:"Commentaires", title:"Commentaires", optional:true},
+  {name:"Commentaires", title:"Commentaires"},
   {name:"MontantTTC", title:"Montant TTC", type:"Numeric"},
   {name:"Validation", title:"Validation (agent)", optional:true},
   {name:"DateEnvoi", title:"Date d'envoi", type:"Date", optional:true},
@@ -860,7 +864,14 @@ async function toGristFields(logicalFields){
   return result;
 }
 
+function requireCommentairesMapping(){
+  if (isGristAvailable() && !mappedColumnId("Commentaires")) {
+    throw new Error("La colonne « Commentaires » n’est pas associée au widget. Ajoutez-la à la table Commandes puis associez-la dans les options du widget Grist.");
+  }
+}
+
 async function addRecord(fields){
+  requireCommentairesMapping();
   const gristFields = await toGristFields(fields);
   if (isGristAvailable() && grist.selectedTable) {
     await grist.selectedTable.create({ fields: gristFields });
@@ -872,6 +883,7 @@ async function addRecord(fields){
 }
 
 async function updateRecord(id, fields){
+  requireCommentairesMapping();
   const gristFields = await toGristFields(fields);
   if (isGristAvailable() && grist.selectedTable) {
     await grist.selectedTable.update({ id, fields: gristFields });
@@ -1477,7 +1489,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.5_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.6_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1736,6 +1748,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.5 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.6 — 24/07/2026</footer>
 </body>
 </html>
