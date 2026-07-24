@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.13 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.14 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.13</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.14</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -558,6 +558,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.14</div>
+          <div><h3>Lecture directe du contenu Nacre</h3><ul><li>Le sélecteur utilise les valeurs des cellules Code Nacre.</li><li>L’identifiant de ligne Grist n’est plus utilisé comme code affiché.</li><li>Les intitulés sont associés à partir de la même ligne du référentiel.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.13</div>
           <div><h3>Clarification de la saisie Nacre</h3><ul><li>Le menu affiche désormais uniquement le code Nacre exact.</li><li>L’intitulé correspondant est présenté dans une zone élargie.</li><li>Réorganisation de la zone Nacre dans la saisie et la modification des commandes.</li></ul></div>
         </article>
@@ -657,7 +661,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.13</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.14</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -929,19 +933,29 @@ async function loadNacreDirectory(){
   nacreRows=[];
   if(!isGristAvailable() || !grist.docApi) return;
   try{
-    let data;
+    let data, tableId="T02_Nacres";
     try{ data=await grist.docApi.fetchTable("T02_Nacres"); }
     catch(_){
       const catalog=await grist.docApi.fetchTable("_grist_Tables");
       const rows=Array.isArray(catalog)?catalog:tableDataToRows(catalog);
       const match=rows.find(row=>[row.tableId,row.tableName,row.name,row.displayName].some(v=>String(v||"").trim().toUpperCase()==="T02_NACRES"));
       if(!match) throw new Error("Table T02_Nacres introuvable.");
-      data=await grist.docApi.fetchTable(String(match.tableId||match.tableName||match.name));
+      tableId=String(match.tableId||match.tableName||match.name);
+      data=await grist.docApi.fetchTable(tableId);
     }
     const rows=Array.isArray(data)?data:tableDataToRows(data);
     const keys=rows.length?Object.keys(rows[0]).filter(k=>k!=="id"):[];
-    nacreCodeColumn=keys.find(k=>/code\s*nacre/i.test(k))||keys[0]||"Code Nacre";
-    nacreTitleColumn=keys.find(k=>/intitul/i.test(k))||keys[1]||"Intitulés Nacre";
+    try{
+      const meta=await grist.docApi.fetchTable("_grist_Tables_column");
+      const metaRows=Array.isArray(meta)?meta:tableDataToRows(meta);
+      const tableMeta=metaRows.filter(r=>String(r.parentTable||r.tableId||r.table_id||"")===tableId);
+      const codeMeta=tableMeta.find(r=>/code\s*nacre/i.test(String(r.label||r.colId||r.name||"")));
+      const titleMeta=tableMeta.find(r=>/intitul/i.test(String(r.label||r.colId||r.name||"")));
+      nacreCodeColumn=codeMeta?.colId||nacreCodeColumn;
+      nacreTitleColumn=titleMeta?.colId||nacreTitleColumn;
+    }catch(_){ /* les identifiants A/B restent le repli */ }
+    nacreCodeColumn=keys.includes(nacreCodeColumn)?nacreCodeColumn:(keys.find(k=>/code\s*nacre/i.test(k))||keys[0]||"A");
+    nacreTitleColumn=keys.includes(nacreTitleColumn)?nacreTitleColumn:(keys.find(k=>/intitul/i.test(k))||keys[1]||"B");
     nacreRows=rows.filter(r=>String(r[nacreCodeColumn]??"").trim()).map(r=>({code:String(r[nacreCodeColumn]??"").trim(),title:String(r[nacreTitleColumn]??"").trim()}));
     renderNacreChoices();
   }catch(err){ console.warn("Lecture du référentiel T02_Nacres impossible.",err); }
@@ -1687,7 +1701,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.13_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.14_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1948,6 +1962,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.13 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.14 — 24/07/2026</footer>
 </body>
 </html>
