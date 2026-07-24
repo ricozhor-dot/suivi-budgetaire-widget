@@ -164,9 +164,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
   </div>
   <nav class="tabs">
     <button class="tab-btn active" data-view="dashboard">⌂ Tableau de bord</button>
-    <button class="tab-btn" data-view="saisie">＋ Nouvelle commande</button>
-    <button class="tab-btn" data-view="modifier">✎ Modifier une commande</button>
     <button class="tab-btn" data-view="consult">☰ Commandes</button>
+    <button class="tab-btn" data-view="modifier">✎ Modifier une commande</button>
+    <button class="tab-btn" data-view="saisie">＋ Nouvelle commande</button>
+    <button class="tab-btn" data-view="fournisseurs">▦ Fournisseurs</button>
     <button class="tab-btn" data-view="stats">◆ Analyses</button>
     <button class="tab-btn" data-view="versions">◷ Versions</button>
     <button class="tab-btn admin-only" data-view="admin" id="adminTab" hidden>⚙ Administrateur</button>
@@ -516,7 +517,15 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="footnote">Les commandes « Annulée » sont exclues des engagements. Le secteur budgétaire est déterminé par le centre de coût : COSL = Saint-Leu, COCITAD = Citadelle, COPUC = Cathédrale.</div>
   </section>
 
-  <!-- ============ VUE 4 : HISTORIQUE DES VERSIONS ============ -->
+  <!-- ============ VUE 4 : FOURNISSEURS ============ -->
+  <section class="view" id="view-fournisseurs">
+    <div class="panel">
+      <h2>Fournisseurs</h2>
+      <div class="empty-state">Cette page sera complétée dans une prochaine version.</div>
+    </div>
+  </section>
+
+  <!-- ============ VUE 5 : HISTORIQUE DES VERSIONS ============ -->
   <section class="view" id="view-versions">
     <div class="panel">
       <h2>Historique des versions</h2>
@@ -586,7 +595,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     </div>
   </section>
 
-  <!-- ============ VUE 5 : ADMINISTRATEUR ============ -->
+  <!-- ============ VUE 6 : ADMINISTRATEUR ============ -->
   <section class="view" id="view-admin">
     <div class="panel admin-panel">
       <div class="section-head">
