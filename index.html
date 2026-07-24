@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.9 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.11 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.9</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.11</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -548,6 +548,14 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.11</div>
+          <div><h3>Référentiel T01_Fournisseurs</h3><ul><li>Utilisation de la table T01_Fournisseurs comme source du référentiel.</li><li>Conservation de la colonne FOURNISSEURS et de la gestion ajout / modification.</li></ul></div>
+        </article>
+        <article class="version-entry">
+          <div class="version-number">V2.5.10</div>
+          <div><h3>Détection automatique de la table fournisseurs</h3><ul><li>Recherche de la table par son nom affiché ou son identifiant interne Grist.</li><li>Correction de l’erreur lorsque le nom technique de la table diffère de FOURNISSEURS.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.9</div>
           <div><h3>Compatibilité du référentiel fournisseurs</h3><ul><li>Reconnaissance du nom affiché et de l’identifiant interne de la colonne Grist.</li><li>Correction de l’erreur lors du chargement ou de l’enregistrement des fournisseurs.</li></ul></div>
         </article>
@@ -631,7 +639,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.9</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.11</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -718,6 +726,7 @@ let gristChoiceOptions = {}; // choix configurés dans les colonnes Grist
 let supplierDirectory = []; // référentiel de la table FOURNISSEURS
 let supplierRows = [];
 let supplierColumnId = "FOURNISSEURS";
+let supplierTableId = "T01_Fournisseurs";
 
 /* ================= GRIST WIRING ================= */
 function isGristAvailable(){ return typeof grist !== "undefined"; }
@@ -850,7 +859,18 @@ async function loadSupplierDirectory(){
   supplierRows = [];
   if (!isGristAvailable() || !grist.docApi) return;
   try {
-    const data = await grist.docApi.fetchTable("FOURNISSEURS");
+    let data;
+    try {
+      data = await grist.docApi.fetchTable("T01_Fournisseurs");
+    } catch (_) {
+      const catalog = await grist.docApi.fetchTable("_grist_Tables");
+      const catalogRows = Array.isArray(catalog) ? catalog : tableDataToRows(catalog);
+      const wanted = ["T01_FOURNISSEURS","FOURNISSEURS"];
+      const match = catalogRows.find(row => [row.tableId,row.tableName,row.name,row.displayName].some(v=>wanted.includes(String(v||"").trim().toUpperCase())));
+      if(!match) throw new Error("Table T01_Fournisseurs introuvable dans le document Grist.");
+      supplierTableId = String(match.tableId || match.tableName || match.name);
+      data = await grist.docApi.fetchTable(supplierTableId);
+    }
     const rows = Array.isArray(data) ? data : tableDataToRows(data);
     const keys = rows.length ? Object.keys(rows[0]).filter(k=>k!=="id") : [];
     supplierColumnId = keys.includes("FOURNISSEURS") ? "FOURNISSEURS" : (keys[0] || "FOURNISSEURS");
@@ -889,8 +909,8 @@ function resetSupplierForm(){
 async function saveSupplier(name,id){
   if(!isGristAvailable() || !grist.docApi || !grist.docApi.applyUserActions) throw new Error("La table FOURNISSEURS n’est pas accessible en écriture depuis ce widget.");
   const fields={[supplierColumnId]:name};
-  if(id) await grist.docApi.applyUserActions([["UpdateRecord","FOURNISSEURS",Number(id),fields]]);
-  else await grist.docApi.applyUserActions([["AddRecord","FOURNISSEURS",-1,fields]]);
+  if(id) await grist.docApi.applyUserActions([["UpdateRecord",supplierTableId,Number(id),fields]]);
+  else await grist.docApi.applyUserActions([["AddRecord",supplierTableId,-1,fields]]);
   await loadSupplierDirectory();
   renderSuppliers();
   renderDatalists();
@@ -1595,7 +1615,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.9_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.11_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1855,6 +1875,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.9 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.11 — 24/07/2026</footer>
 </body>
 </html>
