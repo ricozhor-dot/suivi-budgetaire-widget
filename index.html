@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.8 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.9 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.8</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.9</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -548,6 +548,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.9</div>
+          <div><h3>Compatibilité du référentiel fournisseurs</h3><ul><li>Reconnaissance du nom affiché et de l’identifiant interne de la colonne Grist.</li><li>Correction de l’erreur lors du chargement ou de l’enregistrement des fournisseurs.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.8</div>
           <div><h3>Gestion des fournisseurs</h3><ul><li>Ajout d’une page de gestion du référentiel fournisseurs.</li><li>Ajout et modification des fournisseurs directement dans la table Grist FOURNISSEURS.</li><li>Actualisation automatique des listes de fournisseurs dans les commandes.</li></ul></div>
         </article>
@@ -627,7 +631,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.8</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.9</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -713,6 +717,7 @@ let charts = {};
 let gristChoiceOptions = {}; // choix configurés dans les colonnes Grist
 let supplierDirectory = []; // référentiel de la table FOURNISSEURS
 let supplierRows = [];
+let supplierColumnId = "FOURNISSEURS";
 
 /* ================= GRIST WIRING ================= */
 function isGristAvailable(){ return typeof grist !== "undefined"; }
@@ -847,8 +852,10 @@ async function loadSupplierDirectory(){
   try {
     const data = await grist.docApi.fetchTable("FOURNISSEURS");
     const rows = Array.isArray(data) ? data : tableDataToRows(data);
-    supplierRows = rows.filter(row => row.id != null && String(row.FOURNISSEURS ?? "").trim());
-    supplierDirectory = [...new Set(supplierRows.map(row => String(row.FOURNISSEURS ?? "").trim()).filter(Boolean))]
+    const keys = rows.length ? Object.keys(rows[0]).filter(k=>k!=="id") : [];
+    supplierColumnId = keys.includes("FOURNISSEURS") ? "FOURNISSEURS" : (keys[0] || "FOURNISSEURS");
+    supplierRows = rows.filter(row => row.id != null && String(row[supplierColumnId] ?? "").trim());
+    supplierDirectory = [...new Set(supplierRows.map(row => String(row[supplierColumnId] ?? "").trim()).filter(Boolean))]
       .sort((a,b)=>a.localeCompare(b,"fr",{sensitivity:"base"}));
   } catch (err) {
     console.warn("Lecture de la table FOURNISSEURS impossible; conservation des fournisseurs des commandes.", err);
@@ -859,13 +866,13 @@ function renderSuppliers(){
   const body=document.getElementById("supplierBody"), empty=document.getElementById("supplierEmpty");
   if(!body) return;
   const rows=[...supplierRows].sort((a,b)=>String(a.FOURNISSEURS).localeCompare(String(b.FOURNISSEURS),"fr",{sensitivity:"base"}));
-  body.innerHTML=rows.map(row=>`<tr><td>${escapeHtml(row.FOURNISSEURS)}</td><td><button type="button" class="btn btn-ghost btn-sm supplier-edit" data-id="${row.id}">Modifier</button></td></tr>`).join("");
+  body.innerHTML=rows.map(row=>`<tr><td>${escapeHtml(row[supplierColumnId])}</td><td><button type="button" class="btn btn-ghost btn-sm supplier-edit" data-id="${row.id}">Modifier</button></td></tr>`).join("");
   if(empty) empty.hidden=rows.length>0;
   body.querySelectorAll(".supplier-edit").forEach(btn=>btn.addEventListener("click",()=>{
     const row=supplierRows.find(x=>String(x.id)===String(btn.dataset.id));
     if(!row) return;
     document.getElementById("supplierId").value=row.id;
-    document.getElementById("supplierName").value=row.FOURNISSEURS||"";
+    document.getElementById("supplierName").value=row[supplierColumnId]||"";
     document.getElementById("btnSaveSupplier").textContent="✓ Enregistrer la modification";
     document.getElementById("btnCancelSupplier").hidden=false;
     document.getElementById("supplierName").focus();
@@ -881,8 +888,9 @@ function resetSupplierForm(){
 
 async function saveSupplier(name,id){
   if(!isGristAvailable() || !grist.docApi || !grist.docApi.applyUserActions) throw new Error("La table FOURNISSEURS n’est pas accessible en écriture depuis ce widget.");
-  if(id) await grist.docApi.applyUserActions([["UpdateRecord","FOURNISSEURS",Number(id),{FOURNISSEURS:name}]]);
-  else await grist.docApi.applyUserActions([["AddRecord","FOURNISSEURS",-1,{FOURNISSEURS:name}]]);
+  const fields={[supplierColumnId]:name};
+  if(id) await grist.docApi.applyUserActions([["UpdateRecord","FOURNISSEURS",Number(id),fields]]);
+  else await grist.docApi.applyUserActions([["AddRecord","FOURNISSEURS",-1,fields]]);
   await loadSupplierDirectory();
   renderSuppliers();
   renderDatalists();
@@ -1587,7 +1595,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.8_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.9_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1847,6 +1855,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.8 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.9 — 24/07/2026</footer>
 </body>
 </html>
