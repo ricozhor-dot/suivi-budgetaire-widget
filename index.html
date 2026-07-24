@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.3 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.4 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.3</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.4</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -316,6 +316,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
             <label>Motivation d'achat</label>
             <textarea id="f_motivations" rows="3"></textarea>
           </div>
+          <div class="field span2">
+            <label>Commentaires</label>
+            <textarea id="f_commentaires" rows="3" placeholder="Informations complémentaires sur la commande"></textarea>
+          </div>
           <div class="field">
             <label>Montant TTC (€) <span class="req">*</span></label>
             <input type="number" step="0.01" min="0" id="f_montant" required>
@@ -434,6 +438,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
           <div class="field"><label>Marché</label><select id="e_marches"><option value="">—</option><option value="oui">oui</option><option value="non">non</option></select></div>
           <div class="field span2"><label>Objet de la commande</label><input type="text" id="e_objet" required></div>
           <div class="field span2"><label>Motivations d'achat</label><textarea id="e_motivations"></textarea></div>
+          <div class="field span2"><label>Commentaires</label><textarea id="e_commentaires" rows="3"></textarea></div>
           <div class="field"><label>Montant TTC (€)</label><input type="number" step="0.01" min="0" id="e_montant" required></div>
           <div class="field"><label>Validation (agent)</label><input type="text" id="e_validation"></div>
           <div class="field"><label>État commande</label><select id="e_etat"><option>Attente</option><option>Livrée</option><option>Partielle</option><option>Annulée</option><option>Retour</option></select></div>
@@ -523,6 +528,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.4</div>
+          <div><h3>Commentaires sur les commandes</h3><ul><li>Ajout du champ Commentaires lors de la création d’une commande.</li><li>Affichage des commentaires dans l’aperçu d’ouverture et dans la fiche de modification.</li><li>Enregistrement des commentaires lors de la modification, avec prise en charge dans la recherche et l’export CSV.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.3</div>
           <div><h3>Avertissement repositionné</h3><ul><li>Déplacement du bandeau de développement entre les onglets et les deux tuiles principales du tableau de bord.</li><li>Ajout du pictogramme triangle ⚠ avant la mention « Attention ».</li><li>Conservation du style violet foncé et italique existant.</li></ul></div>
         </article>
@@ -582,7 +591,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.3</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.4</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -643,6 +652,7 @@ const COLUMN_DEFS = [
   {name:"Objet", title:"Objet de la commande"},
   {name:"Marches", title:"Marchés", optional:true},
   {name:"Motivations", title:"Motivations d'achats", optional:true},
+  {name:"Commentaires", title:"Commentaires", optional:true},
   {name:"MontantTTC", title:"Montant TTC", type:"Numeric"},
   {name:"Validation", title:"Validation (agent)", optional:true},
   {name:"DateEnvoi", title:"Date d'envoi", type:"Date", optional:true},
@@ -727,6 +737,7 @@ function normalizeRecord(r){
     Objet: r.Objet || "",
     Marches: r.Marches || "",
     Motivations: r.Motivations || "",
+    Commentaires: r.Commentaires || "",
     MontantTTC: Number(r.MontantTTC) || 0,
     Validation: r.Validation || "",
     DateEnvoi: r.DateEnvoi ? toDateStr(r.DateEnvoi) : "",
@@ -986,6 +997,7 @@ document.getElementById("formSaisie").addEventListener("submit", async (e)=>{
       Objet: document.getElementById("f_objet").value,
       Marches: document.getElementById("f_marches").value,
       Motivations: document.getElementById("f_motivations").value,
+      Commentaires: document.getElementById("f_commentaires").value,
       MontantTTC: parseFloat(document.getElementById("f_montant").value) || 0,
       Validation: document.getElementById("f_validation").value,
       EtatCommande: document.getElementById("f_etat").value,
@@ -1092,6 +1104,7 @@ function previewEditRecord(id){
   const validationValue=String(r.Validation||"").trim();
   const postesValue=String(r.PostesManquants||"").trim();
   const motivationValue=String(r.Motivations||"").trim();
+  const commentairesValue=String(r.Commentaires||"").trim();
   preview.innerHTML=`
     <div class="edit-preview-head">
       <div>
@@ -1114,6 +1127,7 @@ function previewEditRecord(id){
       <div><span>Marché</span><strong>${escapeHtml(marcheValue||"—")}</strong></div>
       <div><span>Validation</span><strong>${escapeHtml(validationValue||"—")}</strong></div>
       <div class="preview-wide"><span>Motivation d'achat</span><strong>${escapeHtml(motivationValue||"—")}</strong></div>
+      <div class="preview-wide"><span>Commentaires</span><strong>${escapeHtml(commentairesValue||"Aucun commentaire")}</strong></div>
       <div class="preview-wide ${postesValue?"preview-alert":""}"><span>Postes manquants</span><strong>${escapeHtml(postesValue||"Aucun poste manquant signalé")}</strong></div>
     </div>
     <div class="edit-preview-meta">
@@ -1139,7 +1153,7 @@ function loadEditRecord(id){
   selectedEditType=r.Type||"Fonctionnement";
   document.querySelectorAll("#editTypeToggle button").forEach(b=>b.classList.toggle("on",b.dataset.type===selectedEditType));
   fillSelect("e_secteur", combinedChoices("Secteur", [...SECTEURS, ...records.map(x=>x.Secteur)]), "Choix du secteur", r.Secteur, false);
-  const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
+  const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_commentaires:r.Commentaires,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande,e_postes:r.PostesManquants};
   Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??"";});
   updateEditNavigation(r.id);
   form.scrollIntoView({behavior:"smooth",block:"start"});
@@ -1182,7 +1196,7 @@ document.getElementById("formModifier").addEventListener("submit",async e=>{
   e.preventDefault();const btn=document.getElementById("btnSaveEdit");btn.disabled=true;
   try{
     const id=Number(document.getElementById("edit_id").value);
-    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Secteur:document.getElementById("e_secteur").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value,PostesManquants:document.getElementById("e_postes").value};
+    const fields={Date:dateToGrist(document.getElementById("e_date").value),Type:selectedEditType,Secteur:document.getElementById("e_secteur").value,NumBC:document.getElementById("e_numbc").value,CentreCout:document.getElementById("e_centrecout").value,Fournisseur:document.getElementById("e_fournisseur").value,CentraleAchat:document.getElementById("e_centrale").value,Categorie:document.getElementById("e_categorie").value,Objet:document.getElementById("e_objet").value,Marches:document.getElementById("e_marches").value,Motivations:document.getElementById("e_motivations").value,Commentaires:document.getElementById("e_commentaires").value,MontantTTC:parseFloat(document.getElementById("e_montant").value)||0,Validation:document.getElementById("e_validation").value,EtatCommande:document.getElementById("e_etat").value,PostesManquants:document.getElementById("e_postes").value};
     await updateRecord(id,fields);toast("Commande modifiée ✓");
   }catch(err){console.error(err);toast("Erreur lors de la modification : "+(err.message||err),true);}finally{btn.disabled=false;}
 });
@@ -1314,7 +1328,7 @@ function renderConsultTable(){
     if (etat && r.EtatCommande!==etat) return false;
     if (cat && r.Categorie!==cat) return false;
     if (q){
-      const hay = (r.Fournisseur+" "+r.Objet+" "+r.NumBC+" "+r.Categorie).toLowerCase();
+      const hay = (r.Fournisseur+" "+r.Objet+" "+r.NumBC+" "+r.Categorie+" "+r.Commentaires).toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -1460,16 +1474,16 @@ function openBudgetModal(){
 
 document.getElementById("btnExport").addEventListener("click", exportCSV);
 function exportCSV(){
-  const headers = ["Date","Type","Secteur","N° BC","Centre de coût","Fournisseur","Centrale d'achat","Catégorie","Objet","Marché","Montant TTC","Validation","État commande"];
+  const headers = ["Date","Type","Secteur","N° BC","Centre de coût","Fournisseur","Centrale d'achat","Catégorie","Objet","Marché","Commentaires","Montant TTC","Validation","État commande"];
   const lines = [headers.join(";")];
   records.forEach(r=>{
-    lines.push([r.Date,r.Type,r.Secteur,r.NumBC,r.CentreCout,r.Fournisseur,r.CentraleAchat,r.Categorie,r.Objet,r.Marches,r.MontantTTC,r.Validation,r.EtatCommande]
+    lines.push([r.Date,r.Type,r.Secteur,r.NumBC,r.CentreCout,r.Fournisseur,r.CentraleAchat,r.Categorie,r.Objet,r.Marches,r.Commentaires,r.MontantTTC,r.Validation,r.EtatCommande]
       .map(v=> `"${String(v??"").replace(/"/g,'""')}"`).join(";"));
   });
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.3.3_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.4_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1733,6 +1747,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.3 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.4 — 24/07/2026</footer>
 </body>
 </html>
