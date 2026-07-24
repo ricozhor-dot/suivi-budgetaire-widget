@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.16 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.17 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.16</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.17</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -309,7 +309,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
           </div>
           <div class="field span2 nacre-title-field">
             <label>Intitulé Nacre</label>
-            <input id="f_intitule_nacre" type="text" readonly placeholder="Intitulé associé au code">
+            <select id="f_intitule_nacre"><option value="">Choix de l’intitulé Nacre</option></select>
           </div>
           <div class="field">
             <label>Marché</label>
@@ -441,7 +441,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
           <div class="field"><label>Centrale d'achat</label><input type="text" id="e_centrale" list="dl_centrales"></div>
           <div class="field"><label>Catégorie</label><input type="text" id="e_categorie" list="dl_categories" required></div>
           <div class="field"><label>Code Nacre</label><select id="e_code_nacre"><option value="">Choix du code Nacre</option></select></div>
-          <div class="field span2"><label>Intitulé Nacre</label><input id="e_intitule_nacre" type="text" readonly></div>
+          <div class="field span2"><label>Intitulé Nacre</label><select id="e_intitule_nacre"><option value="">Choix de l’intitulé Nacre</option></select></div>
           <div class="field"><label>Marché</label><select id="e_marches"><option value="">—</option><option value="oui">oui</option><option value="non">non</option></select></div>
           <div class="field span2"><label>Objet de la commande</label><input type="text" id="e_objet" required></div>
           <div class="field span2"><label>Motivations d'achat</label><textarea id="e_motivations"></textarea></div>
@@ -558,6 +558,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.17</div>
+          <div><h3>Choix Nacre dans les deux sens</h3><ul><li>Le code Nacre peut être choisi pour afficher son intitulé.</li><li>L’intitulé Nacre peut également être choisi pour afficher son code.</li><li>Les deux champs restent synchronisés dans la création et la modification.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.16</div>
           <div><h3>Normalisation des choix de marché</h3><ul><li>Les variantes oui, Oui, non et Non sont regroupées.</li><li>Les listes affichent désormais uniquement oui et non.</li><li>Les nouvelles commandes enregistrent la valeur normalisée.</li></ul></div>
         </article>
@@ -669,7 +673,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.16</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.17</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -987,16 +991,24 @@ function renderNacreChoices(){
     el.innerHTML='<option value="">Choix du code Nacre</option>'+nacreRows.map(n=>`<option value="${escapeHtml(n.code)}">${escapeHtml(n.code)}</option>`).join("");
     if(current) el.value=current;
   });
-  updateNacreTitle("f_code_nacre","f_intitule_nacre");
-  updateNacreTitle("e_code_nacre","e_intitule_nacre");
+  ["f_intitule_nacre","e_intitule_nacre"].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const current=el.value;
+    el.innerHTML='<option value="">Choix de l’intitulé Nacre</option>'+nacreRows.map(n=>`<option value="${escapeHtml(n.title)}">${escapeHtml(n.title)}</option>`).join("");
+    if(current) el.value=current;
+  });
 }
-function updateNacreTitle(codeId,titleId){
+function syncNacrePair(codeId,titleId,source){
   const code=document.getElementById(codeId), title=document.getElementById(titleId); if(!code||!title) return;
-  const row=nacreRows.find(n=>n.code===code.value);
-  title.value=row?.title||"";
+  const row=source==="title" ? nacreRows.find(n=>n.title===title.value) : nacreRows.find(n=>n.code===code.value);
+  if(!row){ if(source==="code") title.value=""; else code.value=""; return; }
+  if(source==="title") code.value=row.code;
+  else title.value=row.title;
 }
-document.getElementById("f_code_nacre").addEventListener("change",()=>updateNacreTitle("f_code_nacre","f_intitule_nacre"));
-document.getElementById("e_code_nacre").addEventListener("change",()=>updateNacreTitle("e_code_nacre","e_intitule_nacre"));
+document.getElementById("f_code_nacre").addEventListener("change",()=>syncNacrePair("f_code_nacre","f_intitule_nacre","code"));
+document.getElementById("f_intitule_nacre").addEventListener("change",()=>syncNacrePair("f_code_nacre","f_intitule_nacre","title"));
+document.getElementById("e_code_nacre").addEventListener("change",()=>syncNacrePair("e_code_nacre","e_intitule_nacre","code"));
+document.getElementById("e_intitule_nacre").addEventListener("change",()=>syncNacrePair("e_code_nacre","e_intitule_nacre","title"));
 
 function resetSupplierForm(){
   document.getElementById("formFournisseur")?.reset();
@@ -1390,7 +1402,7 @@ function loadEditRecord(id){
   renderNacreChoices();
   const values={e_secteur:r.Secteur,e_date:r.Date,e_numbc:r.NumBC,e_centrecout:r.CentreCout,e_fournisseur:r.Fournisseur,e_centrale:r.CentraleAchat,e_categorie:r.Categorie,e_code_nacre:r.CodeNacre,e_intitule_nacre:r.IntituleNacre,e_marches:r.Marches,e_objet:r.Objet,e_motivations:r.Motivations,e_commentaires:r.Commentaires,e_montant:r.MontantTTC,e_validation:r.Validation,e_etat:r.EtatCommande};
   Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??"";});
-  updateNacreTitle("e_code_nacre","e_intitule_nacre");
+  syncNacrePair("e_code_nacre","e_intitule_nacre","code");
   updateEditNavigation(r.id);
   form.scrollIntoView({behavior:"smooth",block:"start"});
 }
