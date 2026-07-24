@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.12 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.13 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -150,7 +150,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.12</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.13</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -303,11 +303,11 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
               <option value="">Choix de la catégorie</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field nacre-code-field">
             <label>Code Nacre</label>
             <select id="f_code_nacre"><option value="">Choix du code Nacre</option></select>
           </div>
-          <div class="field">
+          <div class="field span2 nacre-title-field">
             <label>Intitulé Nacre</label>
             <input id="f_intitule_nacre" type="text" readonly placeholder="Intitulé associé au code">
           </div>
@@ -441,7 +441,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
           <div class="field"><label>Centrale d'achat</label><input type="text" id="e_centrale" list="dl_centrales"></div>
           <div class="field"><label>Catégorie</label><input type="text" id="e_categorie" list="dl_categories" required></div>
           <div class="field"><label>Code Nacre</label><select id="e_code_nacre"><option value="">Choix du code Nacre</option></select></div>
-          <div class="field"><label>Intitulé Nacre</label><input id="e_intitule_nacre" type="text" readonly></div>
+          <div class="field span2"><label>Intitulé Nacre</label><input id="e_intitule_nacre" type="text" readonly></div>
           <div class="field"><label>Marché</label><select id="e_marches"><option value="">—</option><option value="oui">oui</option><option value="non">non</option></select></div>
           <div class="field span2"><label>Objet de la commande</label><input type="text" id="e_objet" required></div>
           <div class="field span2"><label>Motivations d'achat</label><textarea id="e_motivations"></textarea></div>
@@ -558,6 +558,10 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
+          <div class="version-number">V2.5.13</div>
+          <div><h3>Clarification de la saisie Nacre</h3><ul><li>Le menu affiche désormais uniquement le code Nacre exact.</li><li>L’intitulé correspondant est présenté dans une zone élargie.</li><li>Réorganisation de la zone Nacre dans la saisie et la modification des commandes.</li></ul></div>
+        </article>
+        <article class="version-entry">
           <div class="version-number">V2.5.12</div>
           <div><h3>Intégration des codes Nacre</h3><ul><li>Ajout du choix du code Nacre dans la création et la modification des commandes.</li><li>Affichage automatique de l’intitulé correspondant.</li><li>Lecture du référentiel depuis la table T02_Nacres.</li></ul></div>
         </article>
@@ -653,7 +657,7 @@ nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar 
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.12</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.13</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -947,7 +951,7 @@ function renderNacreChoices(){
   ["f_code_nacre","e_code_nacre"].forEach(id=>{
     const el=document.getElementById(id); if(!el) return;
     const current=el.value;
-    el.innerHTML='<option value="">Choix du code Nacre</option>'+nacreRows.map(n=>`<option value="${escapeHtml(n.code)}">${escapeHtml(n.code)} — ${escapeHtml(n.title)}</option>`).join("");
+    el.innerHTML='<option value="">Choix du code Nacre</option>'+nacreRows.map(n=>`<option value="${escapeHtml(n.code)}">${escapeHtml(n.code)}</option>`).join("");
     if(current) el.value=current;
   });
   updateNacreTitle("f_code_nacre","f_intitule_nacre");
@@ -1683,7 +1687,7 @@ function exportCSV(){
   const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "SELACV_V2.5.12_suivi_execution_budgetaire.csv"; a.click();
+  a.href = url; a.download = "SELACV_V2.5.13_suivi_execution_budgetaire.csv"; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -1944,6 +1948,6 @@ function renderAll(){
 renderAll();
 </script>
 
-<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.12 — 24/07/2026</footer>
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.13 — 24/07/2026</footer>
 </body>
 </html>
