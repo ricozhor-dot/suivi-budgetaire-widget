@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SELACV V2.5.1 - Suivi de l’exécution budgétaire</title>
+<title>SELACV V2.5.3 - Suivi de l’exécution budgétaire</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
@@ -133,6 +133,14 @@
   @media (max-width:820px){.brand{align-items:flex-start}.brand-logo{width:105px}.header-status{justify-content:flex-start}.form-row-primary,.form-row-secondary{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.budget-grid{grid-template-columns:1fr}.form-actions{flex-wrap:wrap}.form-actions .btn{flex:1;justify-content:center}.table-wrap{max-width:100%}}
   @media (max-width:560px){.kpi-grid{grid-template-columns:1fr}.brand{gap:10px}.brand .sub{display:none}.status-pill,.admin-pill{font-size:10.5px;padding:5px 8px}nav.tabs{margin-top:10px}.panel{padding:13px}.hero-actions{display:grid;grid-template-columns:1fr}.hero-actions .btn{justify-content:center}}
 
+
+/* V2.5.2 — harmonisation aubergine */
+:root{--aubergine:#2E1A47;--aubergine-accent:#6D4AA2;}
+header, header *, .app-header, .app-header *, .topbar, .topbar *, .brand, .brand *, .header-title, .header-subtitle, .version-badge, .status-pill, .admin-pill {color:var(--aubergine)!important;}
+nav a, nav button, .tabs button, .tab-btn, .sidebar .nav-item, .menu-item, .navigation button {color:var(--aubergine)!important;}
+nav a.active, nav button.active, .tabs button.active, .tab-btn.active, .sidebar .nav-item.active, .menu-item.active {color:#fff!important;}
+.app-footer{margin-top:24px;padding:14px 10px 18px;text-align:center;font-size:11px;color:var(--aubergine);font-style:italic;border-top:1px solid rgba(46,26,71,.15);}
+.version-chip{color:#fff!important;}
 </style>
 </head>
 <body>
@@ -142,7 +150,7 @@
     <div class="brand">
       <img class="brand-logo" src="https://www.u-picardie.fr/sites/default/files/media/2024-06/upjv-bleu.png" alt="Logo UPJV">
       <div>
-        <h1>SELACV <span class="version-chip">V2.5.1</span></h1>
+        <h1>SELACV <span class="version-chip">V2.5.3</span></h1>
         <div class="sub">Suivi de l’exécution budgétaire · Service Exploitation et Logistique Amiens Centre-Ville</div>
       </div>
     </div>
@@ -515,7 +523,7 @@
       <div class="desc">Cet espace reprend les principales évolutions apportées à SELACV au fil des livraisons. Il sera complété à chaque nouvelle version.</div>
       <div class="version-timeline">
         <article class="version-entry current">
-          <div class="version-number">V2.5.1</div>
+          <div class="version-number">V2.5.3</div>
           <div><h3>Avertissement repositionné</h3><ul><li>Déplacement du bandeau de développement entre les onglets et les deux tuiles principales du tableau de bord.</li><li>Ajout du pictogramme triangle ⚠ avant la mention « Attention ».</li><li>Conservation du style violet foncé et italique existant.</li></ul></div>
         </article>
         <article class="version-entry">
@@ -574,7 +582,7 @@
         <button class="btn btn-ghost" id="btnAdminLogout" type="button">🔒 Verrouiller</button>
       </div>
       <div class="admin-grid">
-        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.1</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
+        <article class="admin-card"><h3>Application</h3><p><strong>Version :</strong> V2.5.3</p><p><strong>Mode :</strong> Responsive desktop first</p><p><strong>Document :</strong> SELACV / Grist</p></article>
         <article class="admin-card"><h3>Connexion Grist</h3><p id="adminGristStatus">Vérification en cours…</p><button class="btn btn-primary btn-sm" id="btnAdminRefresh" type="button">Actualiser les données</button></article>
         <article class="admin-card"><h3>Référentiels</h3><p>Secteurs, bâtiments, équipes, centres de coût, fournisseurs, centrales d’achat, catégories et marchés.</p><p class="footnote">La gestion directe des tables de référence pourra être ajoutée dans une prochaine version.</p></article>
         <article class="admin-card"><h3>Maintenance</h3><p><strong>Commandes chargées :</strong> <span id="adminRecordCount">0</span></p><p><strong>Dernière actualisation :</strong> <span id="adminRefreshTime">—</span></p><button class="btn btn-ghost btn-sm" id="btnAdminClearSession" type="button">Réinitialiser la session admin</button></article>
@@ -1724,5 +1732,7 @@ function renderAll(){
 }
 renderAll();
 </script>
+
+<footer class="app-footer">Développement Aymeric THIEBAUT 2026 — V2.5.3 — 24/07/2026</footer>
 </body>
 </html>
